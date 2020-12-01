@@ -33,5 +33,3 @@ lerna-debug.log*
 src/config/index.ts
 .env
 ormconfig.json
-
-/docker

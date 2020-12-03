@@ -4,7 +4,7 @@ import { IAppConfig } from './app.config.interface'
 import { IEmailConfig } from './email.config.interface'
 import { IJwtConfig } from './jwt.config.interface'
 import { IRefreshTokenConfig } from './refresh-token.config.interface'
-import { RedisOptions } from 'ioredis';
+import { RedisOptions } from 'ioredis'
 
 export interface IConfig {
     app: IAppConfig

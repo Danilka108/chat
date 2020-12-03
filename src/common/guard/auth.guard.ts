@@ -1,20 +1,11 @@
-import {
-    BadRequestException,
-    CanActivate,
-    ExecutionContext,
-    Injectable,
-    UnauthorizedException,
-} from '@nestjs/common'
+import { BadRequestException, CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
 import { IsJWT } from 'class-validator'
 import { RedisService } from 'src/redis/redis.service'
 import { TokenService } from 'src/token/token.service'
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-    constructor(
-        private readonly redisService: RedisService,
-        private readonly tokenService: TokenService
-    ) {}
+    constructor(private readonly redisService: RedisService, private readonly tokenService: TokenService) {}
 
     async canActivate(ctx: ExecutionContext): Promise<boolean> {
         const request = ctx.switchToHttp().getRequest()
@@ -24,9 +15,7 @@ export class AuthGuard implements CanActivate {
             throw new BadRequestException('Access token Validation failed')
         }
 
-        const decoded = await this.tokenService.verifyAccessToken(
-            token.split(' ')[1]
-        )
+        const decoded = await this.tokenService.verifyAccessToken(token.split(' ')[1])
         if (!decoded) {
             throw new UnauthorizedException('Authorization error')
         }

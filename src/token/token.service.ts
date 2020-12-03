@@ -27,7 +27,7 @@ export class TokenService {
     async verifyRefreshToken(
         { userID, ip, os, browser }: IRedisSession,
         refreshToken: string,
-        errorMessage: string = 'Refersh token verify failed'
+        errorMessage: string = 'Refresh token verify failed'
     ) {
         const session = await this.redisService.getSession({
             userID,
@@ -60,5 +60,9 @@ export class TokenService {
                 resolve(decoded as IDecoded)
             })
         })
+    }
+
+    createEmailToken() {
+        return nanoid(128)
     }
 }

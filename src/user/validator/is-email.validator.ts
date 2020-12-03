@@ -1,7 +1,4 @@
-import {
-    ValidatorConstraint,
-    ValidatorConstraintInterface,
-} from 'class-validator'
+import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator'
 
 @ValidatorConstraint({ name: 'isEmail', async: false })
 export class IsEmail implements ValidatorConstraintInterface {

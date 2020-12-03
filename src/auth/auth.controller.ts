@@ -1,11 +1,4 @@
-import {
-    Body,
-    Controller,
-    HttpCode,
-    HttpStatus,
-    Ip,
-    Post,
-} from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Ip, Post } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { LoginDto } from './dto/login.dto'
 import { RefreshTokenDto } from './dto/refresh-token.dto'
@@ -28,10 +21,7 @@ export class AuthController {
 
     @Post('refresh-token')
     @HttpCode(HttpStatus.OK)
-    async refreshToken(
-        @Body() refreshTokenDto: RefreshTokenDto,
-        @Ip() ip: string
-    ) {
+    async refreshToken(@Body() refreshTokenDto: RefreshTokenDto, @Ip() ip: string) {
         const result = await this.authService.refreshToken(refreshTokenDto, ip)
 
         return {

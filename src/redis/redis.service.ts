@@ -8,6 +8,10 @@ import { config } from 'src/config'
 export class RedisService {
     constructor(@Inject(REDIS_CLIENT) private readonly client: Redis) {}
 
+    // ===============
+    // SESSION
+    // ===============
+
     private async getAllSessions(userID: number): Promise<string[]> {
         const stream = this.client.scanStream({
             match: `SESSION|:|${userID}|:|*`,
@@ -26,10 +30,7 @@ export class RedisService {
         })
     }
 
-    async setSession(
-        { userID, ip, os, browser }: IRedisSession,
-        refreshToken: string
-    ) {
+    async setSession({ userID, ip, os, browser }: IRedisSession, refreshToken: string) {
         const { expiresIn, maxNum } = config.refreshToken
 
         const sessions = await this.getAllSessions(userID)
@@ -38,23 +39,11 @@ export class RedisService {
             await Promise.all(sessions.map((key) => this.client.del(key)))
         }
 
-        await this.client.set(
-            `SESSION|:|${userID}|:|${ip}|:|${os}|:|${browser}`,
-            refreshToken,
-            'EX',
-            expiresIn
-        )
+        await this.client.set(`SESSION|:|${userID}|:|${ip}|:|${os}|:|${browser}`, refreshToken, 'EX', expiresIn)
     }
 
-    async getSession({
-        userID,
-        ip,
-        os,
-        browser,
-    }: IRedisSession): Promise<string | null> {
-        const session = await this.client.get(
-            `SESSION|:|${userID}|:|${ip}|:|${os}|:|${browser}`
-        )
+    async getSession({ userID, ip, os, browser }: IRedisSession): Promise<string | null> {
+        const session = await this.client.get(`SESSION|:|${userID}|:|${ip}|:|${os}|:|${browser}`)
 
         if (!session) {
             return null
@@ -68,16 +57,15 @@ export class RedisService {
         await Promise.all(sessions.map((key) => this.client.del(key)))
     }
 
-    async deleteUser(userID: number) {
+    // ===============
+    // DELETE USER
+    // ===============
+
+    async setDeleteUser(userID: number) {
         const { expiresIn } = config.jwt
         const deleteExpiresIn = expiresIn * 1.5 * 1000
 
-        await this.client.set(
-            `DELETED|:|${userID}`,
-            'true',
-            'EX',
-            deleteExpiresIn
-        )
+        await this.client.set(`DELETED|:|${userID}`, 'true', 'EX', deleteExpiresIn)
     }
 
     async isUserDeleted(userID: number) {
@@ -86,22 +74,39 @@ export class RedisService {
         return !!isDeleted
     }
 
-    async setEmailConfirm(userID: number, confirmToken: string) {
+    // ===============
+    // CONFIRM EMAIL
+    // ===============
+
+    async setConfirmEmail(userID: number, confirmToken: string) {
         const { expiresIn } = config.email
 
-        await this.client.set(
-            `EMAIL_CONFIRM|:|${userID}`,
-            confirmToken,
-            'EX',
-            expiresIn
-        )
+        await this.client.set(`CONFIRM_EMAIL|:|${userID}`, confirmToken, 'EX', expiresIn)
     }
 
-    async getEmailConfirm(userID: number) {
-        return await this.client.get(`EMAIL_CONFIRM|:|${userID}`)
+    async getConfirmEmail(userID: number) {
+        return await this.client.get(`CONFIRM_EMAIL|:|${userID}`)
     }
 
-    async delEmailConfirm(userID: number) {
-        await this.client.del(`EMAIL_CONFIRM|:|${userID}`)
+    async delConfirmEmail(userID: number) {
+        await this.client.del(`CONFIRM_EMAIL|:|${userID}`)
+    }
+
+    // ===============
+    // RESET PASSWORD
+    // ===============
+
+    async setResetPassword(userID: number, resetToken: string) {
+        const { expiresIn } = config.email
+
+        await this.client.set(`RESET_PASSWORD|:|${userID}`, resetToken, 'EX', expiresIn)
+    }
+
+    async getResetPassword(userID: number) {
+        return await this.client.get(`RESET_PASSWORD|:|${userID}`)
+    }
+
+    async delResetPassword(userID: number) {
+        await this.client.del(`RESET_PASSWORD|:|${userID}`)
     }
 }

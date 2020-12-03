@@ -1,10 +1,10 @@
 import { IsNotEmpty, IsNumberString } from 'class-validator'
 
-export class ConfirmQueryDto {
+export class QueryDto {
     @IsNotEmpty()
     @IsNumberString()
-    readonly userID!: number
+    readonly id!: number
 
     @IsNotEmpty()
-    readonly confirmToken!: string
+    readonly token!: string
 }

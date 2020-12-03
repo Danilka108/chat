@@ -1,5 +1,5 @@
 export interface IEmailConfig {
-    expiresIn: number,
-    expiresInHours: number,
-    from: string,
+    expiresIn: number
+    expiresInHours: number
+    from: string
 }

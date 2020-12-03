@@ -10,13 +10,7 @@ import { EmailService } from 'src/email/email.service'
 
 @Module({
     imports: [TypeOrmModule.forFeature([User])],
-    providers: [
-        RedisService,
-        TokenService,
-        UserService,
-        AuthService,
-        EmailService,
-    ],
+    providers: [RedisService, TokenService, UserService, AuthService, EmailService],
     controllers: [AuthController],
 })
 export class AuthModule {}

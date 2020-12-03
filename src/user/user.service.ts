@@ -1,15 +1,10 @@
-import {
-    BadRequestException,
-    Injectable,
-    UnauthorizedException,
-} from '@nestjs/common'
+import { BadRequestException, forwardRef, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { CreateUserDto } from './dto/create-user.dto'
 import { User } from './user.entity'
 import { DeleteUserDto } from './dto/delete-user.dto'
 import * as bcrypt from 'bcrypt'
-import { EditPasswordDto } from './dto/edit-password.dto'
 import { EditNameDto } from './dto/edit-name.dto'
 import { EditBioDto } from './dto/edit-bio.dto'
 import { IDecoded } from 'src/common/interface/decoded.interface'
@@ -21,6 +16,7 @@ export class UserService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        @Inject(forwardRef(() => EmailService))
         private readonly emailService: EmailService,
         private readonly redisService: RedisService
     ) {}
@@ -53,20 +49,33 @@ export class UserService {
         return user
     }
 
-    async verifyPassword(
-        password: string,
-        hashPassword: string,
-        errorMessage: string = 'Invalid password'
-    ) {
+    async verifyPassword(password: string, hashPassword: string, errorMessage: string = 'Invalid password') {
         const isMatch = await bcrypt.compare(password, hashPassword)
         if (!isMatch) {
             throw new UnauthorizedException(errorMessage)
         }
     }
 
-    async create(createUserDto: CreateUserDto) {
-        const { name, email, password } = createUserDto
+    async resetPassword(
+        userID: number,
+        oldPassword: string,
+        newPassword: string,
+        errorMessage: string = 'Invalid password'
+    ) {
+        const user = await this.findById(userID)
 
+        await this.verifyPassword(oldPassword, user.password, errorMessage)
+
+        const saltRounds = 10
+        const salt = await bcrypt.genSalt(saltRounds)
+
+        user.password = await bcrypt.hash(newPassword, salt)
+        await this.userRepository.save(user)
+
+        await this.redisService.delAllSessions(user.id)
+    }
+
+    async create({ name, email, password }: CreateUserDto) {
         const user = await this.userRepository.findOne({
             where: {
                 email,
@@ -84,44 +93,31 @@ export class UserService {
         newUser.is_deleted = false
 
         await this.userRepository.save(newUser)
-        await this.emailService.sendConfirm(newUser.id, newUser.email)
+
+        await this.emailService.sendConfirmEmail(newUser.id, newUser.email)
     }
 
-    async editName(editNameDto: EditNameDto, decoded: IDecoded) {
-        const { newName } = editNameDto
-
+    async editName({ newName }: EditNameDto, decoded: IDecoded) {
         const user = await this.findById(decoded.userID)
 
         user.name = newName
         await this.userRepository.save(user)
     }
 
-    async editBio(editBioDto: EditBioDto, decoded: IDecoded) {
-        const { newBio } = editBioDto
-
+    async editBio({ newBio }: EditBioDto, decoded: IDecoded) {
         const user = await this.findById(decoded.userID)
 
         user.bio = newBio
         await this.userRepository.save(user)
     }
 
-    async editPassword(editPasswordDto: EditPasswordDto, decoded: IDecoded) {
-        const { newPassword, oldPassword } = editPasswordDto
-
+    async editPassword(decoded: IDecoded) {
         const user = await this.findById(decoded.userID)
 
-        await this.verifyPassword(oldPassword, user.password)
-
-        const saltRounds = 10
-        const salt = await bcrypt.genSalt(saltRounds)
-
-        user.password = await bcrypt.hash(newPassword, salt)
-        await this.userRepository.save(user)
+        await this.emailService.sendResetPassword(decoded.userID, user.email)
     }
 
-    async delete(deleteUserDto: DeleteUserDto, decoded: IDecoded) {
-        const { password } = deleteUserDto
-
+    async delete({ password }: DeleteUserDto, decoded: IDecoded) {
         const user = await this.findById(decoded.userID)
 
         await this.verifyPassword(password, user.password)
@@ -129,7 +125,8 @@ export class UserService {
         user.email = ''
         user.is_deleted = true
 
+        await this.redisService.setDeleteUser(user.id)
+
         await this.userRepository.save(user)
-        await this.redisService.deleteUser(user.id)
     }
 }

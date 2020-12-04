@@ -16,7 +16,7 @@ export class TokenService {
         const accessToken = jwt.sign({ userID }, jwtSecret, {
             expiresIn: jwtExpiresIn,
         })
-        const refreshToken = nanoid(64)
+        const refreshToken = nanoid(128)
 
         return {
             accessToken,

@@ -15,7 +15,7 @@ export class EmailController {
 
         return {
             statusCode: HttpStatus.OK,
-            message: 'Email confirmed successfully',
+            message: 'Email confirmed',
         }
     }
 
@@ -26,7 +26,18 @@ export class EmailController {
 
         return {
             statusCode: HttpStatus.OK,
-            message: 'Password successfully reset',
+            message: 'Password reseted',
+        }
+    }
+
+    @Get('change-email')
+    @HttpCode(HttpStatus.OK)
+    async changeEmail(@Query() queryDto: QueryDto) {
+        await this.emailService.changeEmail(queryDto)
+
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'Email changed',
         }
     }
 }

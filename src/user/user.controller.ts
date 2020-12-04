@@ -1,12 +1,15 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, Delete, UseGuards, Get } from '@nestjs/common'
+import { Body, Controller, Post, HttpCode, HttpStatus, Delete, UseGuards, Get, Query } from '@nestjs/common'
 import { Decoded } from 'src/common/decorator/decoded.decorator'
 import { AuthGuard } from 'src/common/guard/auth.guard'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { CreateUserDto } from './dto/create-user.dto'
 import { DeleteUserDto } from './dto/delete-user.dto'
-import { EditBioDto } from './dto/edit-bio.dto'
-import { EditNameDto } from './dto/edit-name.dto'
+import { ChangeBioDto } from './dto/change-bio.dto'
+import { ChangeNameDto } from './dto/change-name.dto'
 import { UserService } from './user.service'
+import { ChangeEmailDto } from './dto/change-email.dto'
+import { ChangePasswordDto } from './dto/change-password.dto'
+import { ResetPasswordDto } from './dto/reset-password.dto'
 
 @Controller('api/user')
 export class UserController {
@@ -23,23 +26,23 @@ export class UserController {
         }
     }
 
-    @Get('edit/password')
+    @Post('change/password')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async editPassword(@Decoded() decoded: IDecoded) {
-        await this.userService.editPassword(decoded)
+    async changePassword(@Body() changePasswordDto: ChangePasswordDto, @Decoded() decoded: IDecoded) {
+        await this.userService.changePassword(changePasswordDto, decoded)
 
         return {
             statusCode: HttpStatus.OK,
-            message: 'A link to reset your password has been sent to your email',
+            message: 'User password changed',
         }
     }
 
-    @Post('edit/name')
+    @Post('change/name')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async editName(@Body() editNameDto: EditNameDto, @Decoded() decoded: IDecoded) {
-        await this.userService.editName(editNameDto, decoded)
+    async changeName(@Body() changeNameDto: ChangeNameDto, @Decoded() decoded: IDecoded) {
+        await this.userService.changeName(changeNameDto, decoded)
 
         return {
             statusCode: HttpStatus.OK,
@@ -47,15 +50,39 @@ export class UserController {
         }
     }
 
-    @Post('edit/bio')
+    @Post('change/bio')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async editBio(@Body() editBioDto: EditBioDto, @Decoded() decoded: IDecoded) {
-        await this.userService.editBio(editBioDto, decoded)
+    async changeBio(@Body() changeBioDto: ChangeBioDto, @Decoded() decoded: IDecoded) {
+        await this.userService.changeBio(changeBioDto, decoded)
 
         return {
             statusCode: HttpStatus.OK,
             message: 'User bio changed',
+        }
+    }
+
+    @Post('change/email')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
+    async changeEmail(@Body() changeEmailDto: ChangeEmailDto, @Decoded() decoded: IDecoded) {
+        await this.userService.changeEmail(changeEmailDto, decoded)
+
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'A link to complete the email change has been sent to the new email address',
+        }
+    }
+
+    @Post('reset-password')
+    @HttpCode(HttpStatus.OK)
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+        await this.userService.resetPassword(resetPasswordDto)
+
+        return {
+            statusCode: HttpStatus.OK,
+            message:
+                'If an account with the specified email address exists, then a link to reset the password will be sent to it',
         }
     }
 

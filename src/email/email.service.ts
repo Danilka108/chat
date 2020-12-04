@@ -20,20 +20,6 @@ export class EmailService {
         private readonly userService: UserService
     ) {}
 
-    async confirmEmail({ id: userID, token: confirmEmailToken }: QueryDto) {
-        const redisConfirmEmailToken = await this.redisService.getConfirmEmail(userID)
-
-        if (!redisConfirmEmailToken) {
-            throw new BadRequestException('Invalid id or token')
-        }
-
-        if (confirmEmailToken !== redisConfirmEmailToken) {
-            throw new BadRequestException('Invalid id or token')
-        }
-
-        await this.redisService.delConfirmEmail(userID)
-    }
-
     async sendConfirmEmail(userID: number, address: string) {
         const confirmToken = this.tokenService.createEmailToken()
         const { hostname } = config.app
@@ -46,14 +32,28 @@ export class EmailService {
         await this.nodemailerTransporter.sendMail({
             from: `${from}`,
             to: address,
-            subject: 'Verify email',
+            subject: 'Confirm email',
             text: `Link is valid for ${expiresInHours} hours. ${link}`,
             html: `
-				<h1>Verify email</h1>
+				<h1>Confirm email</h1>
 				<p>Link is valid for ${expiresInHours} hours.</p>
 				<a href="${link}">Verify</a>
 			`,
         })
+    }
+
+    async confirmEmail({ id: userID, token: confirmEmailToken }: QueryDto) {
+        const redisConfirmEmailToken = await this.redisService.getConfirmEmail(userID)
+
+        if (!redisConfirmEmailToken) {
+            throw new BadRequestException('Invalid id or token')
+        }
+
+        if (confirmEmailToken !== redisConfirmEmailToken) {
+            throw new BadRequestException('Invalid id or token')
+        }
+
+        await this.redisService.delConfirmEmail(userID)
     }
 
     async verifyConfirmEmail(userID: number, errorMessage = 'You need to confirm your email') {
@@ -85,10 +85,7 @@ export class EmailService {
         })
     }
 
-    async resetPassword(
-        { newPassword, oldPassword }: ResetPasswordDto,
-        { id: userID, token: resetPasswordToken }: QueryDto
-    ) {
+    async resetPassword({ newPassword }: ResetPasswordDto, { id: userID, token: resetPasswordToken }: QueryDto) {
         const redisResetPasswordToken = await this.redisService.getResetPassword(userID)
 
         if (!redisResetPasswordToken) {
@@ -98,8 +95,45 @@ export class EmailService {
             throw new UnauthorizedException('Invalid id or token')
         }
 
-        await this.userService.resetPassword(userID, oldPassword, newPassword)
+        await this.userService.setNewPassword(userID, newPassword)
 
         await this.redisService.delResetPassword(userID)
+    }
+
+    async sendChangeEmail(userID: number, newAddress: string) {
+        const changeEmailToken = this.tokenService.createEmailToken()
+        const { hostname } = config.app
+        const { from, expiresInHours } = config.email
+
+        const link = `http://${hostname}/api/email/change-email?id=${userID}&token=${changeEmailToken}`
+
+        await this.redisService.setChangeEmail(userID, { token: changeEmailToken, email: newAddress })
+
+        await this.nodemailerTransporter.sendMail({
+            from: `${from}`,
+            to: newAddress,
+            subject: 'Confirm new email',
+            text: `Link is valid for ${expiresInHours} hours. ${link}`,
+            html: `
+				<h1>Confirm new email</h1>
+				<p>Link is valid for ${expiresInHours} hours.</p>
+				<a href="${link}">Confirm</a>
+			`,
+        })
+    }
+
+    async changeEmail({ id: userID, token: changeEmailToken }: QueryDto) {
+        const redisChangeEmailData = await this.redisService.getChangeEmail(userID)
+
+        if (!redisChangeEmailData) {
+            throw new UnauthorizedException('Invalid id or token')
+        }
+        if (changeEmailToken !== redisChangeEmailData.token) {
+            throw new UnauthorizedException('Invalid id or token')
+        }
+
+        await this.userService.setNewEmail(userID, redisChangeEmailData.email)
+
+        await this.redisService.delChangeEmail(userID)
     }
 }

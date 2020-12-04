@@ -5,11 +5,14 @@ import { CreateUserDto } from './dto/create-user.dto'
 import { User } from './user.entity'
 import { DeleteUserDto } from './dto/delete-user.dto'
 import * as bcrypt from 'bcrypt'
-import { EditNameDto } from './dto/edit-name.dto'
-import { EditBioDto } from './dto/edit-bio.dto'
+import { ChangeNameDto } from './dto/change-name.dto'
+import { ChangeBioDto } from './dto/change-bio.dto'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { RedisService } from 'src/redis/redis.service'
 import { EmailService } from 'src/email/email.service'
+import { ChangeEmailDto } from './dto/change-email.dto'
+import { ChangePasswordDto } from './dto/change-password.dto'
+import { ResetPasswordDto } from './dto/reset-password.dto'
 
 @Injectable()
 export class UserService {
@@ -56,15 +59,8 @@ export class UserService {
         }
     }
 
-    async resetPassword(
-        userID: number,
-        oldPassword: string,
-        newPassword: string,
-        errorMessage: string = 'Invalid password'
-    ) {
+    async setNewPassword(userID: number, newPassword: string) {
         const user = await this.findById(userID)
-
-        await this.verifyPassword(oldPassword, user.password, errorMessage)
 
         const saltRounds = 10
         const salt = await bcrypt.genSalt(saltRounds)
@@ -73,6 +69,14 @@ export class UserService {
         await this.userRepository.save(user)
 
         await this.redisService.delAllSessions(user.id)
+    }
+
+    async setNewEmail(userID: number, newEmail: string, errorMessage: string = 'User not found') {
+        const user = await this.findById(userID, errorMessage)
+
+        user.email = newEmail
+
+        await this.userRepository.save(user)
     }
 
     async create({ name, email, password }: CreateUserDto) {
@@ -97,35 +101,67 @@ export class UserService {
         await this.emailService.sendConfirmEmail(newUser.id, newUser.email)
     }
 
-    async editName({ newName }: EditNameDto, decoded: IDecoded) {
-        const user = await this.findById(decoded.userID)
+    async changeName({ newName }: ChangeNameDto, { userID }: IDecoded) {
+        const user = await this.findById(userID)
 
         user.name = newName
         await this.userRepository.save(user)
     }
 
-    async editBio({ newBio }: EditBioDto, decoded: IDecoded) {
-        const user = await this.findById(decoded.userID)
+    async changeBio({ newBio }: ChangeBioDto, { userID }: IDecoded) {
+        const user = await this.findById(userID)
 
         user.bio = newBio
         await this.userRepository.save(user)
     }
 
-    async editPassword(decoded: IDecoded) {
-        const user = await this.findById(decoded.userID)
+    async changePassword({ oldPassword, newPassword }: ChangePasswordDto, { userID }: IDecoded) {
+        const user = await this.findById(userID)
 
-        await this.emailService.sendResetPassword(decoded.userID, user.email)
+        await this.verifyPassword(oldPassword, user.password)
+
+        const saltRounds = 10
+        const salt = await bcrypt.genSalt(saltRounds)
+
+        user.password = await bcrypt.hash(newPassword, salt)
+        await this.userRepository.save(user)
+
+        await this.redisService.delAllSessions(userID)
     }
 
-    async delete({ password }: DeleteUserDto, decoded: IDecoded) {
-        const user = await this.findById(decoded.userID)
+    async changeEmail({ password, newEmail }: ChangeEmailDto, { userID }: IDecoded) {
+        const user = await this.findById(userID)
+
+        if (user.email === newEmail) {
+            throw new BadRequestException('This email already in use')
+        }
+
+        await this.verifyPassword(password, user.password)
+
+        await this.emailService.sendChangeEmail(userID, newEmail)
+    }
+
+    async resetPassword({ email }: ResetPasswordDto) {
+        const user = await this.userRepository.findOne({
+            where: {
+                email,
+            },
+        })
+
+        if (user) {
+            await this.emailService.sendResetPassword(user.id, email)
+        }
+    }
+
+    async delete({ password }: DeleteUserDto, { userID }: IDecoded) {
+        const user = await this.findById(userID)
 
         await this.verifyPassword(password, user.password)
 
         user.email = ''
         user.is_deleted = true
 
-        await this.redisService.setDeleteUser(user.id)
+        await this.redisService.setDeleteUser(userID)
 
         await this.userRepository.save(user)
     }

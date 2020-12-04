@@ -3,6 +3,7 @@ import { Redis } from 'ioredis'
 import { REDIS_CLIENT } from './redis.constants'
 import { IRedisSession } from './interface/redis-session.interface'
 import { config } from 'src/config'
+import { IRedisChangeEmail } from './interface/redis-email-change.interface'
 
 @Injectable()
 export class RedisService {
@@ -30,7 +31,7 @@ export class RedisService {
         })
     }
 
-    async setSession({ userID, ip, os, browser }: IRedisSession, refreshToken: string) {
+    async setSession({ userID, ip, os, browser }: IRedisSession, token: string) {
         const { expiresIn, maxNum } = config.refreshToken
 
         const sessions = await this.getAllSessions(userID)
@@ -39,7 +40,7 @@ export class RedisService {
             await Promise.all(sessions.map((key) => this.client.del(key)))
         }
 
-        await this.client.set(`SESSION|:|${userID}|:|${ip}|:|${os}|:|${browser}`, refreshToken, 'EX', expiresIn)
+        await this.client.set(`SESSION|:|${userID}|:|${ip}|:|${os}|:|${browser}`, token, 'EX', expiresIn)
     }
 
     async getSession({ userID, ip, os, browser }: IRedisSession): Promise<string | null> {
@@ -78,10 +79,10 @@ export class RedisService {
     // CONFIRM EMAIL
     // ===============
 
-    async setConfirmEmail(userID: number, confirmToken: string) {
+    async setConfirmEmail(userID: number, token: string) {
         const { expiresIn } = config.email
 
-        await this.client.set(`CONFIRM_EMAIL|:|${userID}`, confirmToken, 'EX', expiresIn)
+        await this.client.set(`CONFIRM_EMAIL|:|${userID}`, token, 'EX', expiresIn)
     }
 
     async getConfirmEmail(userID: number) {
@@ -96,10 +97,10 @@ export class RedisService {
     // RESET PASSWORD
     // ===============
 
-    async setResetPassword(userID: number, resetToken: string) {
+    async setResetPassword(userID: number, token: string) {
         const { expiresIn } = config.email
 
-        await this.client.set(`RESET_PASSWORD|:|${userID}`, resetToken, 'EX', expiresIn)
+        await this.client.set(`RESET_PASSWORD|:|${userID}`, token, 'EX', expiresIn)
     }
 
     async getResetPassword(userID: number) {
@@ -108,5 +109,32 @@ export class RedisService {
 
     async delResetPassword(userID: number) {
         await this.client.del(`RESET_PASSWORD|:|${userID}`)
+    }
+
+    // ===============
+    // CHANGE EMAIL
+    // ===============
+
+    async setChangeEmail(userID: number, { token, email }: { token: string; email: string }) {
+        const { expiresIn } = config.email
+
+        const data: IRedisChangeEmail = {
+            token,
+            email,
+        }
+
+        await this.client.set(`CHANGE_EMAIL|:|${userID}`, JSON.stringify(data), 'EX', expiresIn)
+    }
+
+    async getChangeEmail(userID: number) {
+        const data = await this.client.get(`CHANGE_EMAIL|:|${userID}`)
+        if (!data) return null
+
+        const result: IRedisChangeEmail = JSON.parse(data)
+        return result
+    }
+
+    async delChangeEmail(userID: number) {
+        await this.client.del(`CHANGE_EMAIL|:|${userID}`)
     }
 }

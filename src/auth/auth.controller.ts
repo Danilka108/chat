@@ -14,7 +14,7 @@ export class AuthController {
 
         return {
             statusCode: HttpStatus.OK,
-            mesage: 'Authentication complited successfully',
+            mesage: 'Authentication complited',
             data: result,
         }
     }
@@ -26,7 +26,7 @@ export class AuthController {
 
         return {
             statusCode: HttpStatus.OK,
-            message: 'Token refreshed successfully',
+            message: 'Token refreshed',
             data: result,
         }
     }

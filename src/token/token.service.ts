@@ -1,14 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import * as jwt from 'jsonwebtoken'
 import { nanoid } from 'nanoid'
-import { RedisService } from 'src/redis/redis.service'
 import { IRedisSession } from 'src/redis/interface/redis-session.interface'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { config } from 'src/config'
+import { RedisSessionService } from 'src/redis/services/redis.session.service'
 
 @Injectable()
 export class TokenService {
-    constructor(private readonly redisService: RedisService) {}
+    constructor(private readonly redisSessionService: RedisSessionService) {}
 
     createTokens(userID: number) {
         const { expiresIn: jwtExpiresIn, secret: jwtSecret } = config.jwt
@@ -29,7 +29,7 @@ export class TokenService {
         refreshToken: string,
         errorMessage: string = 'Refresh token verify failed'
     ) {
-        const session = await this.redisService.getSession({
+        const session = await this.redisSessionService.get({
             userID,
             ip,
             os,
@@ -41,7 +41,7 @@ export class TokenService {
         }
 
         if (refreshToken !== session) {
-            await this.redisService.delAllSessions(userID)
+            await this.redisSessionService.delAll(userID)
             throw new UnauthorizedException(errorMessage)
         }
 

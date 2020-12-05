@@ -3,8 +3,8 @@ import { NestFactory } from '@nestjs/core'
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express'
 import { AppModule } from './app.module'
 import * as helmet from 'helmet'
-import * as csurf from 'csurf'
-import * as rateLimit from 'express-rate-limit'
+// import * as csurf from 'csurf'
+// import * as rateLimit from 'express-rate-limit'
 import { config } from './config'
 
 async function bootstrap() {

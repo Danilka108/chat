@@ -1,16 +1,15 @@
-import { Module } from '@nestjs/common'
-import { RedisService } from 'src/redis/redis.service'
+import { forwardRef, Module } from '@nestjs/common'
 import { EmailService } from './email.service'
 import { EmailController } from './email.controller'
-import { TokenService } from 'src/token/token.service'
-import { UserService } from 'src/user/user.service'
-import { User } from 'src/user/user.entity'
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { UserModule } from 'src/user/user.module'
+import { EmailLogicService } from './email.logic.service'
+import { RedisModule } from 'src/redis/redis.module'
+import { TokenModule } from 'src/token/token.module'
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User])],
-    providers: [EmailService, RedisService, TokenService, UserService],
+    imports: [forwardRef(() => UserModule), RedisModule, TokenModule],
+    providers: [EmailService, EmailLogicService],
     controllers: [EmailController],
-    exports: [EmailService],
+    exports: [EmailLogicService],
 })
 export class EmailModule {}

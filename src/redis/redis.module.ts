@@ -1,16 +1,24 @@
-import { DynamicModule, Module } from '@nestjs/common'
-import { RedisOptions } from 'ioredis'
-import { RedisService } from './redis.service'
-import { RedisCoreModule } from './redis-core.module'
+import { Module } from '@nestjs/common'
+import { RedisChangeEmailService } from './services/redis.change-email.service'
+import { RedisConfirmEmailService } from './services/redis.confirm-email.service'
+import { RedisDeleteUserService } from './services/redis.delete-user.service'
+import { RedisResetPasswordService } from './services/redis.reset-password.service'
+import { RedisSessionService } from './services/redis.session.service'
 
-@Module({})
-export class RedisModule {
-    static forRoot(options: RedisOptions): DynamicModule {
-        return {
-            module: RedisModule,
-            imports: [RedisCoreModule.forRoot(options)],
-            providers: [RedisService],
-            exports: [RedisService],
-        }
-    }
-}
+@Module({
+    providers: [
+        RedisChangeEmailService,
+        RedisConfirmEmailService,
+        RedisDeleteUserService,
+        RedisResetPasswordService,
+        RedisSessionService,
+    ],
+    exports: [
+        RedisChangeEmailService,
+        RedisConfirmEmailService,
+        RedisDeleteUserService,
+        RedisResetPasswordService,
+        RedisSessionService,
+    ],
+})
+export class RedisModule {}

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { EmailService } from 'src/email/email.service'
-import { RedisService } from 'src/redis/redis.service'
+import { EmailLogicService } from 'src/email/email.logic.service'
+import { RedisSessionService } from 'src/redis/services/redis.session.service'
 import { TokenService } from 'src/token/token.service'
-import { UserService } from 'src/user/user.service'
+import { UserDBService } from 'src/user/user.db.service'
 import { LoginDto } from './dto/login.dto'
 import { RefreshTokenDto } from './dto/refresh-token.dto'
 import { IAuthResult } from './interface/auth-result.interface'
@@ -10,20 +10,20 @@ import { IAuthResult } from './interface/auth-result.interface'
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly userSercive: UserService,
-        private readonly redisService: RedisService,
+        private readonly userDBService: UserDBService,
+        private readonly redisSessionService: RedisSessionService,
         private readonly tokenService: TokenService,
-        private readonly emailService: EmailService
+        private readonly emailLogicService: EmailLogicService
     ) {}
 
     async login({ email, password, os, browser }: LoginDto, ip: string) {
-        const user = await this.userSercive.findByEmail(email, 'Invalid password or login')
-        await this.userSercive.verifyPassword(password, user.password, 'Invalid password or login')
+        const user = await this.userDBService.findByEmail(email, 'Invalid password or login')
+        await this.userDBService.verifyPassword(password, user.password, 'Invalid password or login')
 
-        await this.emailService.verifyConfirmEmail(user.id)
+        await this.emailLogicService.verifyConfirmEmail(user.id)
 
         const { accessToken, refreshToken } = this.tokenService.createTokens(user.id)
-        await this.redisService.setSession({ userID: user.id, ip, os, browser }, refreshToken)
+        await this.redisSessionService.set({ userID: user.id, ip, os, browser }, refreshToken)
 
         const result: IAuthResult = {
             userID: user.id,
@@ -39,7 +39,7 @@ export class AuthService {
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = this.tokenService.createTokens(userID)
 
-        await this.redisService.setSession({ userID, ip, os, browser }, newRefreshToken)
+        await this.redisSessionService.set({ userID, ip, os, browser }, newRefreshToken)
 
         const result: IAuthResult = {
             userID,

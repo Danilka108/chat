@@ -23,7 +23,7 @@ export class EmailLogicService {
         const { hostname } = config.app
         const { from } = config.email
 
-        const link = `http://${hostname}/api/email/confirm-email?id=${userID}&token=${confirmToken}`
+        const link = `http://${hostname}/email/confirm-email?id=${userID}&token=${confirmToken}`
 
         await this.redisConfirmEmailService.set(userID, confirmToken)
 
@@ -51,7 +51,7 @@ export class EmailLogicService {
         const { hostname } = config.app
         const { from, expiresInHours } = config.email
 
-        const link = `http://${hostname}/api/email/reset-password?id=${userID}&token=${resetToken}`
+        const link = `http://${hostname}/email/reset-password?id=${userID}&token=${resetToken}`
 
         await this.redisResetPasswordService.set(userID, resetToken)
 

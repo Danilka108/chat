@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { RedisChangeEmailService } from 'src/redis/services/redis.change-email.service'
 import { RedisConfirmEmailService } from 'src/redis/services/redis.confirm-email.service'
 import { RedisResetPasswordService } from 'src/redis/services/redis.reset-password.service'
-import { UserDBService } from 'src/user/user.db.service'
+import { UserDBService } from 'src/user/user-db.service'
 import { QueryDto } from './dto/query.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
 

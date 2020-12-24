@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common'
-import { EmailLogicService } from 'src/email/email.logic.service'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { EmailLogicService } from 'src/email/email-logic.service'
 import { RedisSessionService } from 'src/redis/services/redis.session.service'
 import { TokenService } from 'src/token/token.service'
-import { UserDBService } from 'src/user/user.db.service'
+import { UserDBService } from 'src/user/user-db.service'
 import { LoginDto } from './dto/login.dto'
 import { RefreshTokenDto } from './dto/refresh-token.dto'
 import { IAuthResult } from './interface/auth-result.interface'
@@ -17,8 +17,12 @@ export class AuthService {
     ) {}
 
     async login({ email, password, os, browser }: LoginDto, ip: string) {
-        const user = await this.userDBService.findByEmail(email, 'Invalid password or login')
-        await this.userDBService.verifyPassword(password, user.password, 'Invalid password or login')
+        const user = await this.userDBService.findByEmailNotException(email)
+        if (!user) {
+            throw new UnauthorizedException('Invalid password or email')
+        }
+
+        await this.userDBService.verifyPassword(password, user.password, 'Invalid password or email')
 
         await this.emailLogicService.verifyConfirmEmail(user.id)
 

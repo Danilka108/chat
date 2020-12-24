@@ -1,9 +1,8 @@
-import { IsNotEmpty, IsString, MaxLength, Validate } from 'class-validator'
-import { IsEmail } from '../validator/is-email.validator'
+import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator'
 
 export class ResetPasswordDto {
     @IsNotEmpty()
-    @Validate(IsEmail)
+    @MinLength(8)
     @MaxLength(254)
     @IsString()
     readonly email!: string

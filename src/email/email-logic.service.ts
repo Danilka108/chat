@@ -21,7 +21,7 @@ export class EmailLogicService {
     async sendConfirmEmail(userID: number, address: string) {
         const confirmToken = this.tokenService.createEmailToken()
         const { hostname } = config.app
-        const { from, expiresInHours } = config.email
+        const { from } = config.email
 
         const link = `http://${hostname}/api/email/confirm-email?id=${userID}&token=${confirmToken}`
 
@@ -31,10 +31,9 @@ export class EmailLogicService {
             from: `${from}`,
             to: address,
             subject: 'Confirm email',
-            text: `Link is valid for ${expiresInHours} hours. ${link}`,
+            text: `${link}`,
             html: `
 				<h1>Confirm email</h1>
-				<p>Link is valid for ${expiresInHours} hours.</p>
 				<a href="${link}">Verify</a>
 			`,
         })
@@ -72,7 +71,7 @@ export class EmailLogicService {
     async sendChangeEmail(userID: number, newAddress: string) {
         const changeEmailToken = this.tokenService.createEmailToken()
         const { hostname } = config.app
-        const { from, expiresInHours } = config.email
+        const { from } = config.email
 
         const link = `http://${hostname}/api/email/change-email?id=${userID}&token=${changeEmailToken}`
 
@@ -82,10 +81,9 @@ export class EmailLogicService {
             from: `${from}`,
             to: newAddress,
             subject: 'Confirm new email',
-            text: `Link is valid for ${expiresInHours} hours. ${link}`,
+            text: `${link}`,
             html: `
 				<h1>Confirm new email</h1>
-				<p>Link is valid for ${expiresInHours} hours.</p>
 				<a href="${link}">Confirm</a>
 			`,
         })

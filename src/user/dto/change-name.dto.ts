@@ -1,9 +1,7 @@
-import { IsNotEmpty, IsString, MaxLength, MinLength, Validate } from 'class-validator'
-import { IsName } from '../validator/is-name.validator'
+import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator'
 
 export class ChangeNameDto {
     @IsNotEmpty()
-    @Validate(IsName)
     @MinLength(2)
     @MaxLength(20)
     @IsString()

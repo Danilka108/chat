@@ -7,10 +7,11 @@ import { IDecoded } from 'src/common/interface/decoded.interface'
 import { ChangeEmailDto } from './dto/change-email.dto'
 import { ChangePasswordDto } from './dto/change-password.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
-import { UserDBService } from './user.db.service'
-import { EmailLogicService } from 'src/email/email.logic.service'
+import { UserDBService } from './user-db.service'
+import { EmailLogicService } from 'src/email/email-logic.service'
 import { RedisSessionService } from 'src/redis/services/redis.session.service'
 import { RedisDeleteUserService } from 'src/redis/services/redis.delete-user.service'
+import { CheckEmailDto } from './dto/check-email.dto'
 
 @Injectable()
 export class UserService {
@@ -25,6 +26,14 @@ export class UserService {
         const newUser = await this.userDBService.create(name, email, password)
 
         await this.emailLogicService.sendConfirmEmail(newUser.id, newUser.email)
+    }
+
+    async checkEmail({ email }: CheckEmailDto) {
+        const user = await this.userDBService.findByEmailNotException(email);
+
+        if (user) {
+            throw new BadRequestException('Email already in use')
+        }
     }
 
     async changeName({ newName }: ChangeNameDto, { userID }: IDecoded) {

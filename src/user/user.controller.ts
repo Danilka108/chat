@@ -10,12 +10,13 @@ import { UserService } from './user.service'
 import { ChangeEmailDto } from './dto/change-email.dto'
 import { ChangePasswordDto } from './dto/change-password.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
+import { CheckEmailDto } from './dto/check-email.dto'
 
 @Controller('api/user')
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
-    @Post()
+    @Post('create')
     @HttpCode(HttpStatus.OK)
     async create(@Body() createUserDto: CreateUserDto) {
         await this.userService.create(createUserDto)
@@ -24,6 +25,17 @@ export class UserController {
             statusCode: HttpStatus.OK,
             message: 'User created. Please confirm your email to complete registration',
         }
+    }
+
+    @Post('check-email')
+    @HttpCode(HttpStatus.OK)
+    async checkEmail(@Body() checkEmailDto: CheckEmailDto) {
+        await this.userService.checkEmail(checkEmailDto)
+
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'Email can be used',
+        };
     }
 
     @Post('change/password')
@@ -82,11 +94,11 @@ export class UserController {
         return {
             statusCode: HttpStatus.OK,
             message:
-                'If an account with the specified email address exists, then a link to reset the password will be sent to it',
+                'If the user is registered with this email address, the email will be sent to this email address',
         }
     }
 
-    @Delete()
+    @Delete('delete')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
     async delete(@Body() deleteUserDto: DeleteUserDto, @Decoded() decoded: IDecoded) {

@@ -1,11 +1,8 @@
 import { IsNotEmpty, Validate, MinLength, MaxLength, IsString } from 'class-validator'
 import { IsEmail } from '../validator/is-email.validator'
-import { IsPassword } from '../validator/is-password.validator'
-import { IsName } from '../validator/is-name.validator'
 
 export class CreateUserDto {
     @IsNotEmpty()
-    @Validate(IsName)
     @MinLength(2)
     @MaxLength(20)
     @IsString()
@@ -18,7 +15,7 @@ export class CreateUserDto {
     readonly email!: string
 
     @IsNotEmpty()
-    @Validate(IsPassword)
+    @MinLength(8)
     @MaxLength(100)
     @IsString()
     readonly password!: string

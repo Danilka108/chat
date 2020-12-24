@@ -29,7 +29,7 @@ export class UserService {
     }
 
     async checkEmail({ email }: CheckEmailDto) {
-        const user = await this.userDBService.findByEmailNotException(email);
+        const user = await this.userDBService.findByEmailNotException(email)
 
         if (user) {
             throw new BadRequestException('Email already in use')

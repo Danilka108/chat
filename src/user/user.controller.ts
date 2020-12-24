@@ -35,7 +35,7 @@ export class UserController {
         return {
             statusCode: HttpStatus.OK,
             message: 'Email can be used',
-        };
+        }
     }
 
     @Post('change/password')
@@ -93,8 +93,7 @@ export class UserController {
 
         return {
             statusCode: HttpStatus.OK,
-            message:
-                'If the user is registered with this email address, the email will be sent to this email address',
+            message: 'If the user is registered with this email address, the email will be sent to this email address',
         }
     }
 

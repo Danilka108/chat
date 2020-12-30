@@ -27,9 +27,9 @@ export class UserDBService {
             await tryCallback(manager)
             await qeuryRunner.commitTransaction()
         } catch (error) {
-            await catchCallback(error)
-
             await qeuryRunner.rollbackTransaction()
+            
+            await catchCallback(error)
         } finally {
             await qeuryRunner.release()
         }

@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
-import { RedisChangeEmailService } from 'src/redis/services/redis.change-email.service'
-import { RedisConfirmEmailService } from 'src/redis/services/redis.confirm-email.service'
-import { RedisResetPasswordService } from 'src/redis/services/redis.reset-password.service'
+import { RedisChangeEmailService } from 'src/redis/services/redis-change-email.service'
+import { RedisConfirmEmailService } from 'src/redis/services/redis-confirm-email.service'
+import { RedisResetPasswordService } from 'src/redis/services/redis-reset-password.service'
 import { UserDBService } from 'src/user/user-db.service'
 import { QueryDto } from './dto/query.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
@@ -39,7 +39,7 @@ export class EmailService {
             throw new UnauthorizedException('Invalid reset password link')
         }
 
-        await this.userDBService.setNewPassword(userID, newPassword)
+        await this.userDBService.setNewPassword({ userID, newPassword }, {})
 
         await this.redisResetPasswordService.del(userID)
     }

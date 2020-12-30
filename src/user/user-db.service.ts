@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { InjectConnection, InjectRepository } from '@nestjs/typeorm'
+import { Connection, EntityManager, Repository } from 'typeorm'
 import { User } from './user.entity'
 import * as bcrypt from 'bcrypt'
 
@@ -8,10 +8,36 @@ import * as bcrypt from 'bcrypt'
 export class UserDBService {
     constructor(
         @InjectRepository(User)
-        private readonly userRepository: Repository<User>
+        private readonly userRepository: Repository<User>,
+        @InjectConnection()
+        private readonly connection: Connection
     ) {}
 
-    async create(name: string, email: string, password: string) {
+    async transaction(
+        tryCallback: (manager: EntityManager) => Promise<unknown> | void,
+        catchCallback: (errorMessage: string) => Promise<unknown> | void
+    ) {
+        const qeuryRunner = this.connection.createQueryRunner()
+        const manager = qeuryRunner.manager
+
+        await qeuryRunner.connect()
+        await qeuryRunner.startTransaction()
+
+        try {
+            await tryCallback(manager)
+            await qeuryRunner.commitTransaction()
+        } catch (error) {
+            await catchCallback(error)
+
+            await qeuryRunner.rollbackTransaction()
+        } finally {
+            await qeuryRunner.release()
+        }
+    }
+
+    async create({ name, email, password }: { name: string; email: string; password: string }, manager: EntityManager) {
+        const userRepo = manager.getRepository(User)
+
         const user = await this.findByEmailNotException(email)
 
         if (user) {
@@ -23,7 +49,11 @@ export class UserDBService {
         newUser.email = email
         newUser.password = password
 
-        return await this.userRepository.save(newUser)
+        await manager.save(newUser)
+
+        manager.getRepository(User)
+
+        return await userRepo.save(newUser)
     }
 
     async findById(id: number, errorMessage: string = 'User not found') {
@@ -82,7 +112,10 @@ export class UserDBService {
         return user
     }
 
-    async verifyPassword(password: string, hashPassword: string, errorMessage: string = 'Invalid password') {
+    async verifyPassword(
+        { password, hashPassword }: { password: string; hashPassword: string },
+        errorMessage: string = 'Invalid password'
+    ) {
         const isMatch = await bcrypt.compare(password, hashPassword)
         if (!isMatch) {
             throw new UnauthorizedException(errorMessage)
@@ -90,43 +123,52 @@ export class UserDBService {
     }
 
     async setNewPassword(
-        userID: number,
-        newPassword: string,
-        oldPassword?: string,
-        verifyErrorMessage: string = 'Invalid password',
-        errorMessage: string = 'User not found'
+        { userID, newPassword, oldPassword }: { userID: number; newPassword: string; oldPassword?: string },
+        { verifyMsg, findMsg }: { verifyMsg?: string; findMsg?: string },
+        manager?: EntityManager
     ) {
-        const user = await this.findById(userID, errorMessage)
+        const user = await this.findById(userID, findMsg ? findMsg : undefined)
 
         if (oldPassword) {
-            await this.verifyPassword(oldPassword, user.password, verifyErrorMessage)
+            await this.verifyPassword(
+                {
+                    password: oldPassword,
+                    hashPassword: user.password,
+                },
+                verifyMsg ? verifyMsg : undefined
+            )
         }
 
         const saltRounds = 10
         const salt = await bcrypt.genSalt(saltRounds)
 
         user.password = await bcrypt.hash(newPassword, salt)
-        await this.userRepository.save(user)
+
+        if (manager) {
+            await manager.save(user)
+        } else {
+            await this.userRepository.save(user)
+        }
     }
 
-    async setNewEmail(userID: number, newEmail: string, errorMessage: string = 'User not found') {
-        const user = await this.findById(userID, errorMessage)
+    async setNewEmail(userID: number, newEmail: string, errorMessage?: string) {
+        const user = await this.findById(userID, errorMessage ? errorMessage : undefined)
 
         user.email = newEmail
 
         await this.userRepository.save(user)
     }
 
-    async setNewName(userID: number, newName: string, errorMessage: string = 'User not found') {
-        const user = await this.findById(userID, errorMessage)
+    async setNewName(userID: number, newName: string, errorMessage?: string) {
+        const user = await this.findById(userID, errorMessage ? errorMessage : undefined)
 
         user.name = newName
 
         await this.userRepository.save(user)
     }
 
-    async setNewBio(userID: number, newBio: string, errorMessage: string = 'User not found') {
-        const user = await this.findById(userID, errorMessage)
+    async setNewBio(userID: number, newBio: string, errorMessage?: string) {
+        const user = await this.findById(userID, errorMessage ? errorMessage : undefined)
 
         user.bio = newBio
 
@@ -136,7 +178,10 @@ export class UserDBService {
     async delete(userID: number, password: string) {
         const user = await this.findById(userID)
 
-        await this.verifyPassword(password, user.password)
+        await this.verifyPassword({
+            password,
+            hashPassword: user.password,
+        })
 
         user.email = ''
         user.is_deleted = true

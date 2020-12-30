@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import { IRedisSession } from 'src/redis/interface/redis-session.interface'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { config } from 'src/config'
-import { RedisSessionService } from 'src/redis/services/redis.session.service'
+import { RedisSessionService } from 'src/redis/services/redis-session.service'
 
 @Injectable()
 export class TokenService {

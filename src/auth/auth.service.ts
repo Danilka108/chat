@@ -19,7 +19,7 @@ export class AuthService {
     async login({ email, password, os, browser }: LoginDto, ip: string) {
         const user = await this.userDBService.findByEmailNotException(email)
         if (!user) {
-            throw new UnauthorizedException('Invalid password or email.')
+            throw new UnauthorizedException('Invalid password or email')
         }
 
         await this.userDBService.verifyPassword(

@@ -12,6 +12,7 @@ import { EmailLogicService } from 'src/email/email-logic.service'
 import { RedisSessionService } from 'src/redis/services/redis-session.service'
 import { RedisDeleteUserService } from 'src/redis/services/redis-delete-user.service'
 import { CheckEmailDto } from './dto/check-email.dto'
+import { transaction } from 'src/common/transaction'
 
 @Injectable()
 export class UserService {
@@ -23,7 +24,7 @@ export class UserService {
     ) {}
 
     async create({ name, email, password }: CreateUserDto) {
-        await this.userDBService.transaction(
+        await transaction(
             async (manager) => {
                 const newUser = await this.userDBService.create(
                     {
@@ -58,7 +59,7 @@ export class UserService {
     }
 
     async changePassword({ oldPassword, newPassword }: ChangePasswordDto, { userID }: IDecoded) {
-        await this.userDBService.transaction(
+        await transaction(
             async (manager) => {
                 await this.userDBService.setNewPassword(
                     {
@@ -82,6 +83,12 @@ export class UserService {
         const user = await this.userDBService.findById(userID)
 
         if (user.email === newEmail) {
+            throw new BadRequestException('Email already in use')
+        }
+
+        const isInUse = await this.userDBService.findByEmailNotException(newEmail)
+
+        if (isInUse) {
             throw new BadRequestException('Email already in use')
         }
 

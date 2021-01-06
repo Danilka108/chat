@@ -16,7 +16,7 @@ import { CheckEmailDto } from './dto/check-email.dto'
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
-    @Post('create')
+    @Post()
     @HttpCode(HttpStatus.OK)
     async create(@Body() createUserDto: CreateUserDto) {
         await this.userService.create(createUserDto)
@@ -97,7 +97,7 @@ export class UserController {
         }
     }
 
-    @Delete('delete')
+    @Delete()
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
     async delete(@Body() deleteUserDto: DeleteUserDto, @Decoded() decoded: IDecoded) {

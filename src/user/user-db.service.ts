@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
-import { InjectConnection, InjectRepository } from '@nestjs/typeorm'
-import { Connection, EntityManager, Repository } from 'typeorm'
+import { InjectRepository } from '@nestjs/typeorm'
+import { EntityManager, Repository } from 'typeorm'
 import { User } from './user.entity'
 import * as bcrypt from 'bcrypt'
 
@@ -8,32 +8,8 @@ import * as bcrypt from 'bcrypt'
 export class UserDBService {
     constructor(
         @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
-        @InjectConnection()
-        private readonly connection: Connection
+        private readonly userRepository: Repository<User>
     ) {}
-
-    async transaction(
-        tryCallback: (manager: EntityManager) => Promise<unknown> | void,
-        catchCallback: (errorMessage: string) => Promise<unknown> | void
-    ) {
-        const qeuryRunner = this.connection.createQueryRunner()
-        const manager = qeuryRunner.manager
-
-        await qeuryRunner.connect()
-        await qeuryRunner.startTransaction()
-
-        try {
-            await tryCallback(manager)
-            await qeuryRunner.commitTransaction()
-        } catch (error) {
-            await qeuryRunner.rollbackTransaction()
-            
-            await catchCallback(error)
-        } finally {
-            await qeuryRunner.release()
-        }
-    }
 
     async create({ name, email, password }: { name: string; email: string; password: string }, manager: EntityManager) {
         const userRepo = manager.getRepository(User)
@@ -48,10 +24,6 @@ export class UserDBService {
         newUser.name = name
         newUser.email = email
         newUser.password = password
-
-        await manager.save(newUser)
-
-        manager.getRepository(User)
 
         return await userRepo.save(newUser)
     }

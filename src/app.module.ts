@@ -8,6 +8,9 @@ import { config } from './config'
 import { EmailModule } from './email/email.module'
 import { RedisCoreModule } from './redis/redis-core.module'
 import { RedisModule } from './redis/redis.module'
+import { MessageModule } from './message/message.module'
+import { ContentModule } from './content/content.module'
+import { DialogModule } from './dialog/dialog.module'
 
 @Module({
     imports: [
@@ -19,6 +22,9 @@ import { RedisModule } from './redis/redis.module'
         AuthModule,
         TokenModule,
         EmailModule,
+        MessageModule,
+        ContentModule,
+        DialogModule,
     ],
 })
 export class AppModule {}

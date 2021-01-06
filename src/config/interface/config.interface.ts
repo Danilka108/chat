@@ -5,6 +5,7 @@ import { IEmailConfig } from './email.config.interface'
 import { IJwtConfig } from './jwt.config.interface'
 import { IRefreshTokenConfig } from './refresh-token.config.interface'
 import { RedisOptions } from 'ioredis'
+import { IMessageConfig } from './message.config.interface'
 
 export interface IConfig {
     app: IAppConfig
@@ -14,4 +15,5 @@ export interface IConfig {
     refreshToken: IRefreshTokenConfig
     nodemailer: SmtpOptions
     email: IEmailConfig
+    message: IMessageConfig
 }

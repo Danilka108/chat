@@ -1,21 +1,9 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Param,
-    ParseIntPipe,
-    Post,
-    Put,
-    Query,
-    UseGuards,
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query, UseGuards } from '@nestjs/common'
 import { Decoded } from 'src/common/decorator/decoded.decorator'
 import { AuthGuard } from 'src/common/guard/auth.guard'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { ParseIDPipe } from 'src/common/pipe/parse-id.pipe'
+import { ParseNumberPipe } from 'src/common/pipe/parse-number.pipe'
 import { EditMessageDto } from './dto/edit-message-dto'
 import { SendMessageDto } from './dto/send-message.dto'
 import { MessageService } from './message.service'
@@ -27,8 +15,13 @@ export class MessageController {
     @Get(':id')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async getAllMessages(@Param('id', ParseIDPipe) id: number, @Decoded() decoded: IDecoded) {
-        const messages = await this.messageService.getAllMessages(id, decoded)
+    async getMessages(
+        @Param('id', ParseIDPipe) id: number,
+        @Query('take', ParseNumberPipe) take: number,
+        @Query('skip', ParseNumberPipe) skip: number,
+        @Decoded() decoded: IDecoded
+    ) {
+        const messages = await this.messageService.getMessages(id, take, skip, decoded)
 
         return {
             statusCode: 200,

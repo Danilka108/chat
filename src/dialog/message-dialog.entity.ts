@@ -1,5 +1,5 @@
 import { User } from 'src/user/user.entity'
-import { Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity('messages_dialogs')
 export class MessageDialog {

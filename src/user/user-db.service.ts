@@ -28,7 +28,7 @@ export class UserDBService {
         return await userRepo.save(newUser)
     }
 
-    async findById(id: number, errorMessage: string = 'User not found') {
+    async findById(id: number, errorMessage = 'User not found') {
         const user = await this.userRepository.findOne({
             where: {
                 id,
@@ -56,7 +56,7 @@ export class UserDBService {
         return user
     }
 
-    async findByEmail(email: string, errorMessage: string = 'User not found') {
+    async findByEmail(email: string, errorMessage = 'User not found') {
         const user = await this.userRepository.findOne({
             where: {
                 email,
@@ -86,7 +86,7 @@ export class UserDBService {
 
     async verifyPassword(
         { password, hashPassword }: { password: string; hashPassword: string },
-        errorMessage: string = 'Invalid password'
+        errorMessage = 'Invalid password'
     ) {
         const isMatch = await bcrypt.compare(password, hashPassword)
         if (!isMatch) {

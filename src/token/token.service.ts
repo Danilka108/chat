@@ -27,7 +27,7 @@ export class TokenService {
     async verifyRefreshToken(
         { userID, ip, os, browser }: IRedisSession,
         refreshToken: string,
-        errorMessage: string = 'Refresh token verify failed'
+        errorMessage = 'Refresh token verify failed'
     ) {
         const session = await this.redisSessionService.get({
             userID,

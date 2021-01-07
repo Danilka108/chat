@@ -42,7 +42,7 @@ export class MessageDialogDBService {
         const dialog = await this.find(interlocutor1, interlocutor2)
 
         if (dialog) {
-            await this.messageDialogRepository.delete(dialog)
+            await this.messageDialogRepository.remove(dialog)
         }
     }
 

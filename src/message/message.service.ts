@@ -18,11 +18,11 @@ export class MessageService {
         private readonly messageDialogDBService: MessageDialogDBService
     ) {}
 
-    async getAllMessages(receiverID: number, { userID }: IDecoded) {
+    async getMessages(receiverID: number, take: number, skip: number, { userID }: IDecoded) {
         const sender = await this.userDBService.findById(userID, 'Sender user not found')
         const receiver = await this.userDBService.findById(receiverID, 'Receiver user not found')
 
-        return (await this.messageDBService.find(sender, receiver)).map((key) => ({
+        return (await this.messageDBService.find(sender, receiver, take, skip)).map((key) => ({
             senderID: key.sender.id,
             receiverID: key.receiver.id,
             message: key.content.text,

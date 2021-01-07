@@ -61,12 +61,14 @@ export class MessageDBService {
         }
     }
 
-    async find(interlocutor1: User, interlocutor2: User, errorMessage?: string) {
+    async find(interlocutor1: User, interlocutor2: User, take: number, skip: number, errorMessage?: string) {
         const messages = await this.messageRepository.find({
             relations: ['sender', 'receiver', 'content'],
             order: {
                 createdAt: 'DESC',
             },
+            skip,
+            take,
             where: [
                 {
                     sender: interlocutor1,

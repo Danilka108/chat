@@ -13,9 +13,9 @@ export class DialogService {
     async getDialogs({ userID }: IDecoded) {
         const messageDialogs = await this.messageDialogDBService.getAll(userID)
 
-        let dialogs = []
+        const dialogs = []
 
-        for await (let key of messageDialogs) {
+        for await (const key of messageDialogs) {
             const lastMessage = (await this.messageDBService.findLatest(key.interlocutor_1, key.interlocutor_2))[0]
 
             if (!lastMessage) {

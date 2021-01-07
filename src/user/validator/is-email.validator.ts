@@ -3,7 +3,7 @@ import { ValidatorConstraint, ValidatorConstraintInterface } from 'class-validat
 @ValidatorConstraint({ name: 'isEmail', async: false })
 export class IsEmail implements ValidatorConstraintInterface {
     validate(text: string) {
-        const regexp: RegExp = new RegExp('@')
+        const regexp = new RegExp('@')
         return regexp.test(text)
     }
 }

@@ -10,7 +10,7 @@ export class UserDBService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>
     ) {}
-
+    
     async create({ name, email, password }: { name: string; email: string; password: string }, manager: EntityManager) {
         const userRepo = manager.getRepository(User)
 

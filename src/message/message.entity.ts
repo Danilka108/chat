@@ -31,9 +31,13 @@ export class Message {
     })
     is_updated!: boolean
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        type: 'timestamp with time zone'
+    })
     createdAt!: string
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({
+        type: 'timestamp with time zone'
+    })
     updatedAt!: string
 }

@@ -22,13 +22,16 @@ export class MessageService {
         const sender = await this.userDBService.findById(userID, 'Sender user not found')
         const receiver = await this.userDBService.findById(receiverID, 'Receiver user not found')
 
+        await this.messageDBService.markMessagesAsRead(receiver, sender)
+
         return (await this.messageDBService.find(sender, receiver, take, skip)).map((key) => ({
             senderID: key.sender.id,
             receiverID: key.receiver.id,
             message: key.content.text,
             createdAt: key.createdAt,
             updatedAt: key.updatedAt,
-            isUpdated: key.is_updated,
+            isUpdated: key.isUpdated,
+            isReaded: key.isReaded,
             messageID: key.id,
         }))
     }
@@ -42,6 +45,7 @@ export class MessageService {
                 await this.messageDialogDBService.create(sender, receiver, manager)
                 const newContent = await this.contentDBService.createContent(message, manager)
                 const newMessage = await this.messageDBService.create(newContent, sender, receiver, manager)
+                await this.messageDBService.markMessagesAsRead(receiver, sender, manager)
 
                 return newMessage
             },

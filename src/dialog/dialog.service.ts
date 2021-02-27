@@ -23,12 +23,16 @@ export class DialogService {
             }
 
             const receiver = lastMessage.sender.id === userID ? lastMessage.receiver : lastMessage.sender
+            const user = lastMessage.sender.id === userID ? lastMessage.sender : lastMessage.receiver
+
+            const newMessagesCount = (await this.messageDBService.findNotReaded(receiver, user)).length
 
             dialogs.push({
                 receiverID: receiver.id,
                 receiverName: receiver.name,
-                latestMessage: lastMessage.content.text,
+                lastMessage: lastMessage.content.text,
                 createdAt: lastMessage.createdAt,
+                newMessagesCount,
             })
         }
 

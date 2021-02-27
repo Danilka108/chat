@@ -108,9 +108,39 @@ export class MessageDBService {
         })
     }
 
+    async findNotReaded(sender: User, receiver: User) {
+        return await this.messageRepository.find({
+            relations: ['sender', 'receiver'],
+            where: {
+                sender,
+                receiver,
+                isReaded: false,
+            },
+        })
+    }
+
+    async markMessagesAsRead(sender: User, receiver: User, manager?: EntityManager) {
+        const messages = (await this.findNotReaded(sender, receiver))
+            .filter((message) => {
+                return !message.isReaded
+            })
+            .map((message) => {
+                const msg = message
+                msg.isReaded = true
+                return msg
+            })
+
+        if (manager) {
+            const messageRepo = manager.getRepository(Message)
+            await messageRepo.save(messages)
+        } else {
+            await this.messageRepository.save(messages)
+        }
+    }
+
     async update(content: Content, message: Message, manager: EntityManager) {
         message.content = content
-        message.is_updated = true
+        message.isUpdated = true
 
         const messageRepo = manager.getRepository(Message)
         await messageRepo.save(message)

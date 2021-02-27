@@ -7,10 +7,12 @@ import { UserDBService } from './user-db.service'
 import { RedisModule } from 'src/redis/redis.module'
 import { EmailModule } from 'src/email/email.module'
 import { TokenModule } from 'src/token/token.module'
+import { UserGateway } from './user.gateway'
+import { UserSocketManager } from './user.socket-manager'
 
 @Module({
     imports: [forwardRef(() => EmailModule), TypeOrmModule.forFeature([User]), RedisModule, TokenModule],
-    providers: [UserDBService, UserService],
+    providers: [UserDBService, UserService, UserGateway, UserSocketManager],
     controllers: [UserController],
     exports: [UserDBService],
 })

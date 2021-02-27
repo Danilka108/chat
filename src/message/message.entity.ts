@@ -29,15 +29,20 @@ export class Message {
     @Column({
         default: false,
     })
-    is_updated!: boolean
+    isUpdated!: boolean
 
     @CreateDateColumn({
-        type: 'timestamp with time zone'
+        type: 'timestamp with time zone',
     })
     createdAt!: string
 
     @UpdateDateColumn({
-        type: 'timestamp with time zone'
+        type: 'timestamp with time zone',
     })
     updatedAt!: string
+
+    @Column({
+        default: false,
+    })
+    isReaded!: boolean
 }

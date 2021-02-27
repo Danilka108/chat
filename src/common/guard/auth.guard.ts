@@ -1,5 +1,5 @@
 import { BadRequestException, CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
-import { IsJWT } from 'class-validator'
+import { isJWT } from 'class-validator'
 import { RedisDeleteUserService } from 'src/redis/services/redis-delete-user.service'
 import { TokenService } from 'src/token/token.service'
 
@@ -12,13 +12,13 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(ctx: ExecutionContext): Promise<boolean> {
         const request = ctx.switchToHttp().getRequest()
-        const token = request.headers.authorization
+        const token = (request.headers['authorization'] as string).split(' ')
 
-        if (!token || !IsJWT(token)) {
-            throw new BadRequestException('Access token Validation failed')
+        if (!token || token.length !== 2 || token[0] !== 'Bearer' || !isJWT(token[1])) {
+            throw new UnauthorizedException('Access token Validation failed')
         }
 
-        const decoded = await this.tokenService.verifyAccessToken(token.split(' ')[1])
+        const decoded = await this.tokenService.verifyAccessToken(token[1])
         if (!decoded) {
             throw new UnauthorizedException('Authorization error')
         }

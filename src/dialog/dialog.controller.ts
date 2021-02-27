@@ -8,7 +8,7 @@ import { DialogService } from './dialog.service'
 export class DialogController {
     constructor(private readonly dialogService: DialogService) {}
 
-    @Get('')
+    @Get()
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
     async getDialogs(@Decoded() decoded: IDecoded) {

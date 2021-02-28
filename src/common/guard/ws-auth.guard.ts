@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
-import { WsException } from '@nestjs/websockets'
-import { isJWT } from 'class-validator'
+import { isJWT, isString } from 'class-validator'
 import { RedisDeleteUserService } from 'src/redis/services/redis-delete-user.service'
 import { TokenService } from 'src/token/token.service'
 
@@ -15,7 +14,14 @@ export class WsAuthGuard implements CanActivate {
         const ctx = context.switchToWs()
         const client = ctx.getClient()
         const token = (client.handshake.query['authorization'] as string).split(' ')
-        console.log(token)
+        
+        const sessionOS = client.handshake.query['os']
+        const sessionBrowser = client.handshake.query['browser']
+
+        if (!(sessionOS && isString(sessionOS)) || !(sessionBrowser || isString(sessionBrowser))) {
+            client.emit('error:invalid_token')
+            return false
+        }
 
         if (!token || !isJWT(token[1]) || token[0] !== 'Bearer' || token.length !== 2) {
             client.emit('error:invalid_token')
@@ -35,6 +41,8 @@ export class WsAuthGuard implements CanActivate {
         }
 
         client.handshake.decoded = decoded
+        client.handshake.sessionOS = sessionOS
+        client.handshake.sessionBrowser = sessionBrowser
 
         return true
     }

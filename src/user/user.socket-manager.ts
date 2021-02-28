@@ -11,6 +11,10 @@ export class UserSocketManager {
         this.userSessionsSockets = new Map<IRedisSession, Socket>()
     }
 
+    emitConnectionSuccess(socket: Socket) {
+        socket.emit('user:connect_success')
+    }
+
     addUserSessionSocket(session: IRedisSession, socket: Socket) {
         const { maxNum } = config.refreshToken
 

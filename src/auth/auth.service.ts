@@ -3,6 +3,7 @@ import { EmailLogicService } from 'src/email/email-logic.service'
 import { RedisSessionService } from 'src/redis/services/redis-session.service'
 import { TokenService } from 'src/token/token.service'
 import { UserDBService } from 'src/user/user-db.service'
+import { UserSocketManager } from 'src/user/user.socket-manager'
 import { LoginDto } from './dto/login.dto'
 import { RefreshTokenDto } from './dto/refresh-token.dto'
 import { IAuthResult } from './interface/auth-result.interface'
@@ -13,7 +14,8 @@ export class AuthService {
         private readonly userDBService: UserDBService,
         private readonly redisSessionService: RedisSessionService,
         private readonly tokenService: TokenService,
-        private readonly emailLogicService: EmailLogicService
+        private readonly emailLogicService: EmailLogicService,
+        private readonly userSocketManager: UserSocketManager
     ) {}
 
     async login({ email, password, os, browser }: LoginDto, ip: string) {
@@ -45,7 +47,12 @@ export class AuthService {
     }
 
     async refreshToken({ userID, os, browser, refreshToken }: RefreshTokenDto, ip: string) {
-        await this.tokenService.verifyRefreshToken({ userID, ip, os, browser }, refreshToken)
+        const isVerify = await this.tokenService.verifyRefreshToken({ userID, ip, os, browser }, refreshToken)
+
+        if (!isVerify) {
+            this.userSocketManager.disconnectUserSessionSocket({ userID, os, browser, ip })
+            throw new UnauthorizedException('Refresh token verify failed')
+        }
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = this.tokenService.createTokens(userID)
 

@@ -35,7 +35,11 @@ export class MessageDialogDBService {
             const messageDialogRepo = manager.getRepository(MessageDialog)
 
             await messageDialogRepo.save(newMessageDialog)
+
+            return true
         }
+
+        return false
     }
 
     async delete(interlocutor1: User, interlocutor2: User) {

@@ -11,10 +11,6 @@ export class UserSocketManager {
         this.userSessionsSockets = new Map<IRedisSession, Socket>()
     }
 
-    emitConnectionSuccess(socket: Socket) {
-        socket.emit('user:connect_success')
-    }
-
     addUserSessionSocket(session: IRedisSession, socket: Socket) {
         const { maxNum } = config.refreshToken
 
@@ -35,10 +31,10 @@ export class UserSocketManager {
         this.userSessionsSockets.set(session, socket)
     }
 
-    sendMessageToUser(userID: number, event: string, message: any) {
+    emitToUser(userID: number, event: string, ...data: any[]) {
         for (const [session, socket] of this.userSessionsSockets) {
             if (session.userID === userID) {
-                socket.emit(event, message)
+                socket.emit(event, ...data)
             }
         }
     }
@@ -48,6 +44,15 @@ export class UserSocketManager {
             if (userSocket === socket) {
                 this.userSessionsSockets.delete(userSession)
                 break
+            }
+        }
+    }
+
+    disconnectUserSessionSocket(session: IRedisSession) {
+        for (const [userSession, userSocket] of this.userSessionsSockets) {
+            if (userSession === session) {
+                this.userSessionsSockets.delete(userSession)
+                userSocket.disconnect(true)
             }
         }
     }

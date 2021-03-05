@@ -11,6 +11,7 @@ import { ChangeEmailDto } from './dto/change-email.dto'
 import { ChangePasswordDto } from './dto/change-password.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
 import { CheckEmailDto } from './dto/check-email.dto'
+import { IBaseResponse } from 'src/common/interface/base-response.interface'
 
 @Controller('api/user')
 export class UserController {
@@ -18,7 +19,7 @@ export class UserController {
 
     @Post()
     @HttpCode(HttpStatus.OK)
-    async create(@Body() createUserDto: CreateUserDto) {
+    async create(@Body() createUserDto: CreateUserDto): Promise<IBaseResponse> {
         await this.userService.create(createUserDto)
 
         return {
@@ -29,7 +30,7 @@ export class UserController {
 
     @Post('check-email')
     @HttpCode(HttpStatus.OK)
-    async checkEmail(@Body() checkEmailDto: CheckEmailDto) {
+    async checkEmail(@Body() checkEmailDto: CheckEmailDto): Promise<IBaseResponse> {
         await this.userService.checkEmail(checkEmailDto)
 
         return {
@@ -41,7 +42,10 @@ export class UserController {
     @Post('change/password')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async changePassword(@Body() changePasswordDto: ChangePasswordDto, @Decoded() decoded: IDecoded) {
+    async changePassword(
+        @Body() changePasswordDto: ChangePasswordDto,
+        @Decoded() decoded: IDecoded
+    ): Promise<IBaseResponse> {
         await this.userService.changePassword(changePasswordDto, decoded)
 
         return {
@@ -53,7 +57,7 @@ export class UserController {
     @Post('change/name')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async changeName(@Body() changeNameDto: ChangeNameDto, @Decoded() decoded: IDecoded) {
+    async changeName(@Body() changeNameDto: ChangeNameDto, @Decoded() decoded: IDecoded): Promise<IBaseResponse> {
         await this.userService.changeName(changeNameDto, decoded)
 
         return {
@@ -65,7 +69,7 @@ export class UserController {
     @Post('change/bio')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async changeBio(@Body() changeBioDto: ChangeBioDto, @Decoded() decoded: IDecoded) {
+    async changeBio(@Body() changeBioDto: ChangeBioDto, @Decoded() decoded: IDecoded): Promise<IBaseResponse> {
         await this.userService.changeBio(changeBioDto, decoded)
 
         return {
@@ -77,7 +81,7 @@ export class UserController {
     @Post('change/email')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async changeEmail(@Body() changeEmailDto: ChangeEmailDto, @Decoded() decoded: IDecoded) {
+    async changeEmail(@Body() changeEmailDto: ChangeEmailDto, @Decoded() decoded: IDecoded): Promise<IBaseResponse> {
         await this.userService.changeEmail(changeEmailDto, decoded)
 
         return {
@@ -88,7 +92,7 @@ export class UserController {
 
     @Post('reset-password')
     @HttpCode(HttpStatus.OK)
-    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<IBaseResponse> {
         await this.userService.resetPassword(resetPasswordDto)
 
         return {
@@ -100,7 +104,7 @@ export class UserController {
     @Delete()
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async delete(@Body() deleteUserDto: DeleteUserDto, @Decoded() decoded: IDecoded) {
+    async delete(@Body() deleteUserDto: DeleteUserDto, @Decoded() decoded: IDecoded): Promise<IBaseResponse> {
         await this.userService.delete(deleteUserDto, decoded)
 
         return {

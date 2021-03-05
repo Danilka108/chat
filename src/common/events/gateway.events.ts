@@ -1,5 +1,8 @@
 export class GatewayEvents {
     static readonly user = {
-        connect: 'user:connect',
+        invalidToken: 'user:invalid_token',
+        connectSuccess: 'user:connect_success',
+        newMessage: 'user:new_message',
+        newDialog: 'user:new_dialog',
     }
 }

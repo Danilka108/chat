@@ -3,6 +3,7 @@ import { Decoded } from 'src/common/decorator/decoded.decorator'
 import { AuthGuard } from 'src/common/guard/auth.guard'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { DialogService } from './dialog.service'
+import { IGetDialogsResponse } from './response/get-dialogs.response'
 
 @Controller('api/dialog')
 export class DialogController {
@@ -11,7 +12,7 @@ export class DialogController {
     @Get()
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async getDialogs(@Decoded() decoded: IDecoded) {
+    async getDialogs(@Decoded() decoded: IDecoded): Promise<IGetDialogsResponse> {
         const dialogs = await this.dialogService.getDialogs(decoded)
 
         return {

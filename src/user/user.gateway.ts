@@ -10,6 +10,7 @@ import { Server, Socket } from 'socket.io'
 import { WsDecoded } from 'src/common/decorator/ws-decoded.decorator'
 import { WsIp } from 'src/common/decorator/ws-ip.decorator'
 import { WsSession } from 'src/common/decorator/ws-session.decorator'
+import { GatewayEvents } from 'src/common/events/gateway.events'
 import { WsAuthGuard } from 'src/common/guard/ws-auth.guard'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { IWsSession } from 'src/common/interface/ws-session.interface'
@@ -29,10 +30,8 @@ export class UserGateway implements OnGatewayDisconnect {
         @ConnectedSocket() socket: Socket,
         @WsDecoded() { userID }: IDecoded,
         @WsIp() ip: string,
-        @WsSession() { os, browser }: IWsSession,
+        @WsSession() { os, browser }: IWsSession
     ) {
-        this.userSocketManager.emitConnectionSuccess(socket)
-
         const session: IRedisSession = {
             userID,
             os,
@@ -41,6 +40,8 @@ export class UserGateway implements OnGatewayDisconnect {
         }
 
         this.userSocketManager.addUserSessionSocket(session, socket)
+
+        this.userSocketManager.emitToUser(userID, GatewayEvents.user.connectSuccess)
     }
 
     handleDisconnect(@ConnectedSocket() socket: Socket) {

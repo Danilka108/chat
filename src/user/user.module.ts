@@ -14,6 +14,6 @@ import { UserSocketManager } from './user.socket-manager'
     imports: [forwardRef(() => EmailModule), TypeOrmModule.forFeature([User]), RedisModule, TokenModule],
     providers: [UserDBService, UserService, UserGateway, UserSocketManager],
     controllers: [UserController],
-    exports: [UserDBService],
+    exports: [UserDBService, UserSocketManager],
 })
 export class UserModule {}

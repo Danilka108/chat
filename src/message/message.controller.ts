@@ -4,9 +4,13 @@ import { AuthGuard } from 'src/common/guard/auth.guard'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { ParseIDPipe } from 'src/common/pipe/parse-id.pipe'
 import { ParseNumberPipe } from 'src/common/pipe/parse-number.pipe'
-import { EditMessageDto } from './dto/edit-message-dto'
+import { EditMessageDto } from './dto/edit-message.dto'
 import { SendMessageDto } from './dto/send-message.dto'
 import { MessageService } from './message.service'
+import { IDeleteMessageResponse } from './response/delete-message.response'
+import { IGetMessagesResponse } from './response/get-messages.response'
+import { ISendMessageResponse } from './response/send-message.response'
+import { IUpdateMessageResponse } from './response/update-message.response'
 
 @Controller('api/message')
 export class MessageController {
@@ -20,7 +24,7 @@ export class MessageController {
         @Query('take', ParseNumberPipe) take: number,
         @Query('skip', ParseNumberPipe) skip: number,
         @Decoded() decoded: IDecoded
-    ) {
+    ): Promise<IGetMessagesResponse> {
         const messages = await this.messageService.getMessages(id, take, skip, decoded)
 
         return {
@@ -37,7 +41,7 @@ export class MessageController {
         @Param('id', ParseIDPipe) id: number,
         @Body() sendMessageDto: SendMessageDto,
         @Decoded() decoded: IDecoded
-    ) {
+    ): Promise<ISendMessageResponse> {
         const message = await this.messageService.sendMessage(id, sendMessageDto, decoded)
 
         return {
@@ -56,7 +60,7 @@ export class MessageController {
         @Query('message-id', ParseIDPipe) messageID: number,
         @Body() editMessageDto: EditMessageDto,
         @Decoded() decoded: IDecoded
-    ) {
+    ): Promise<IUpdateMessageResponse> {
         await this.messageService.updateMessage(editMessageDto, messageID, decoded)
 
         return {
@@ -68,7 +72,10 @@ export class MessageController {
     @Delete()
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
-    async deleteMessage(@Query('message-id', ParseIDPipe) messageID: number, @Decoded() decoded: IDecoded) {
+    async deleteMessage(
+        @Query('message-id', ParseIDPipe) messageID: number,
+        @Decoded() decoded: IDecoded
+    ): Promise<IDeleteMessageResponse> {
         await this.messageService.deleteMessage(messageID, decoded)
 
         return {

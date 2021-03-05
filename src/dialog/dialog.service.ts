@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { MessageDBService } from 'src/message/message-db.service'
 import { MessageDialogDBService } from './message-dialog-db.service'
+import { parseDialog } from './parse-dialog'
 
 @Injectable()
 export class DialogService {
@@ -27,13 +28,7 @@ export class DialogService {
 
             const newMessagesCount = (await this.messageDBService.findNotReaded(receiver, user)).length
 
-            dialogs.push({
-                receiverID: receiver.id,
-                receiverName: receiver.name,
-                lastMessage: lastMessage.content.text,
-                createdAt: lastMessage.createdAt,
-                newMessagesCount,
-            })
+            dialogs.push(parseDialog(receiver, lastMessage, newMessagesCount))
         }
 
         return dialogs

@@ -1,13 +1,17 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { GatewayEvents } from 'src/common/events/gateway.events'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { transaction } from 'src/common/transaction'
 import { ContentDBService } from 'src/content/content-db.service'
 import { MessageDialogDBService } from 'src/dialog/message-dialog-db.service'
 import { UserDBService } from 'src/user/user-db.service'
-import { EditMessageDto } from './dto/edit-message-dto'
+import { UserSocketManager } from 'src/user/user.socket-manager'
+import { EditMessageDto } from './dto/edit-message.dto'
 import { SendMessageDto } from './dto/send-message.dto'
 import { MessageDBService } from './message-db.service'
 import { Message } from './message.entity'
+import { parseMessage } from './parse-message'
+import { parseDialog } from 'src/dialog/parse-dialog'
 
 @Injectable()
 export class MessageService {
@@ -15,7 +19,8 @@ export class MessageService {
         private readonly contentDBService: ContentDBService,
         private readonly messageDBService: MessageDBService,
         private readonly userDBService: UserDBService,
-        private readonly messageDialogDBService: MessageDialogDBService
+        private readonly messageDialogDBService: MessageDialogDBService,
+        private readonly userSocketManager: UserSocketManager
     ) {}
 
     async getMessages(receiverID: number, take: number, skip: number, { userID }: IDecoded) {
@@ -24,16 +29,7 @@ export class MessageService {
 
         await this.messageDBService.markMessagesAsRead(receiver, sender)
 
-        return (await this.messageDBService.find(sender, receiver, take, skip)).map((key) => ({
-            senderID: key.sender.id,
-            receiverID: key.receiver.id,
-            message: key.content.text,
-            createdAt: key.createdAt,
-            updatedAt: key.updatedAt,
-            isUpdated: key.isUpdated,
-            isReaded: key.isReaded,
-            messageID: key.id,
-        }))
+        return (await this.messageDBService.find(sender, receiver, take, skip)).map(parseMessage)
     }
 
     async sendMessage(receiverID: number, { message }: SendMessageDto, { userID }: IDecoded) {
@@ -42,10 +38,20 @@ export class MessageService {
 
         return await transaction<Message>(
             async (manager) => {
-                await this.messageDialogDBService.create(sender, receiver, manager)
+                const isCreatedNewDialog = await this.messageDialogDBService.create(sender, receiver, manager)
                 const newContent = await this.contentDBService.createContent(message, manager)
                 const newMessage = await this.messageDBService.create(newContent, sender, receiver, manager)
                 await this.messageDBService.markMessagesAsRead(receiver, sender, manager)
+
+                if (isCreatedNewDialog) {
+                    this.userSocketManager.emitToUser(
+                        receiver.id,
+                        GatewayEvents.user.newDialog,
+                        parseDialog(sender, newMessage)
+                    )
+                }
+
+                this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.newMessage, parseMessage(newMessage))
 
                 return newMessage
             },

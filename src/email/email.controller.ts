@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common'
 import { HttpStatus } from '@nestjs/common/enums/http-status.enum'
+import { IBaseResponse } from 'src/common/interface/base-response.interface'
 import { QueryDto } from './dto/query.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
 import { EmailService } from './email.service'
@@ -10,7 +11,7 @@ export class EmailController {
 
     @Get('confirm-email')
     @HttpCode(HttpStatus.OK)
-    async confirmEmail(@Query() queryDto: QueryDto) {
+    async confirmEmail(@Query() queryDto: QueryDto): Promise<IBaseResponse> {
         await this.emailService.confirmEmail(queryDto)
 
         return {
@@ -21,7 +22,10 @@ export class EmailController {
 
     @Post('reset-password')
     @HttpCode(HttpStatus.OK)
-    async resetPassword(@Query() queryDto: QueryDto, @Body() resetPasswordDto: ResetPasswordDto) {
+    async resetPassword(
+        @Query() queryDto: QueryDto,
+        @Body() resetPasswordDto: ResetPasswordDto
+    ): Promise<IBaseResponse> {
         await this.emailService.resetPassword(resetPasswordDto, queryDto)
 
         return {
@@ -32,7 +36,7 @@ export class EmailController {
 
     @Get('change-email')
     @HttpCode(HttpStatus.OK)
-    async changeEmail(@Query() queryDto: QueryDto) {
+    async changeEmail(@Query() queryDto: QueryDto): Promise<IBaseResponse> {
         await this.emailService.changeEmail(queryDto)
 
         return {

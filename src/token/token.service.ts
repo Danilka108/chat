@@ -24,11 +24,7 @@ export class TokenService {
         }
     }
 
-    async verifyRefreshToken(
-        { userID, ip, os, browser }: IRedisSession,
-        refreshToken: string,
-        errorMessage = 'Refresh token verify failed'
-    ) {
+    async verifyRefreshToken({ userID, ip, os, browser }: IRedisSession, refreshToken: string) {
         const session = await this.redisSessionService.get({
             userID,
             ip,
@@ -37,12 +33,12 @@ export class TokenService {
         })
 
         if (!session) {
-            throw new UnauthorizedException(errorMessage)
+            return false
         }
 
         if (refreshToken !== session) {
             await this.redisSessionService.delAll(userID)
-            throw new UnauthorizedException(errorMessage)
+            return false
         }
 
         return true

@@ -9,9 +9,9 @@ import { UserSocketManager } from 'src/user/user.socket-manager'
 import { EditMessageDto } from './dto/edit-message.dto'
 import { SendMessageDto } from './dto/send-message.dto'
 import { MessageDBService } from './message-db.service'
-import { Message } from './message.entity'
 import { parseMessage } from './parse-message'
 import { parseDialog } from 'src/dialog/parse-dialog'
+import { IParsedMessage } from './interface/parsed-message.interface'
 
 @Injectable()
 export class MessageService {
@@ -27,7 +27,9 @@ export class MessageService {
         const sender = await this.userDBService.findById(userID, 'Sender user not found')
         const receiver = await this.userDBService.findById(receiverID, 'Receiver user not found')
 
-        await this.messageDBService.markMessagesAsRead(receiver, sender)
+        if (skip === 0) {
+            await this.messageDBService.markMessagesAsRead(receiver, sender)
+        }
 
         return (await this.messageDBService.find(sender, receiver, take, skip)).map(parseMessage)
     }
@@ -36,7 +38,7 @@ export class MessageService {
         const sender = await this.userDBService.findById(userID, 'Sender user not found')
         const receiver = await this.userDBService.findById(receiverID, 'Receiver user not found')
 
-        return await transaction<Message>(
+        return await transaction<IParsedMessage>(
             async (manager) => {
                 const isCreatedNewDialog = await this.messageDialogDBService.create(sender, receiver, manager)
                 const newContent = await this.contentDBService.createContent(message, manager)
@@ -52,8 +54,9 @@ export class MessageService {
                 }
 
                 this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.newMessage, parseMessage(newMessage))
+                this.userSocketManager.emitToUser(sender.id, GatewayEvents.user.newMessage, parseMessage(newMessage))
 
-                return newMessage
+                return parseMessage(newMessage)
             },
             (error) => {
                 throw error
@@ -97,5 +100,14 @@ export class MessageService {
         if (!needDelDialog) {
             await this.messageDialogDBService.delete(message.sender, message.receiver)
         }
+    }
+
+    async allMessagesRead(receiverID: number, { userID }: IDecoded) {
+        const receiver = await this.userDBService.findById(receiverID)
+        const sender = await this.userDBService.findById(userID)
+
+        await this.messageDBService.markMessagesAsRead(sender, receiver)
+
+        this.userSocketManager.emitToUser(receiverID, GatewayEvents.user.allMessagesRead)
     }
 }

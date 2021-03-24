@@ -127,9 +127,7 @@ export class MessageDBService {
             .map((message) => {
                 const msg = message
 
-                if (msg.receiver === receiver) {
-                    msg.isReaded = true
-                }
+                msg.isReaded = true
 
                 return msg
             })

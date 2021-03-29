@@ -4,4 +4,5 @@ export interface IParsedDialog {
     lastMessage: string
     createdAt: string
     newMessagesCount: number
+    connectionStatus: 'online' | 'offline'
 }

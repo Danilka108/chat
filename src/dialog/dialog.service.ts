@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { IDecoded } from 'src/common/interface/decoded.interface'
 import { MessageDBService } from 'src/message/message-db.service'
+import { UserSocketManager } from 'src/user/user.socket-manager'
 import { MessageDialogDBService } from './message-dialog-db.service'
 import { parseDialog } from './parse-dialog'
 
@@ -8,7 +9,8 @@ import { parseDialog } from './parse-dialog'
 export class DialogService {
     constructor(
         private readonly messageDialogDBService: MessageDialogDBService,
-        private readonly messageDBService: MessageDBService
+        private readonly messageDBService: MessageDBService,
+        private readonly userSocketManager: UserSocketManager,
     ) {}
 
     async getDialogs({ userID }: IDecoded) {
@@ -28,7 +30,9 @@ export class DialogService {
 
             const newMessagesCount = (await this.messageDBService.findNotReaded(receiver, user)).length
 
-            dialogs.push(parseDialog(receiver, lastMessage, newMessagesCount))
+            const userConnectionStatus = this.userSocketManager.findUserSessions(receiver.id).length ? 'online' : 'offline'
+
+            dialogs.push(parseDialog(receiver, lastMessage, userConnectionStatus, newMessagesCount))
         }
 
         return dialogs

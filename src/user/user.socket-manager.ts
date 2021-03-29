@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Socket } from 'socket.io'
+import { IWsSession } from 'src/common/interface/ws-session.interface'
 import { config } from 'src/config'
 import { IRedisSession } from 'src/redis/interface/redis-session.interface'
 
@@ -29,6 +30,18 @@ export class UserSocketManager {
         }
 
         this.userSessionsSockets.set(session, socket)
+    }
+
+    findUserSessions(userID: number) {
+        const sessions: IWsSession[] = []
+
+        for (const [session] of this.userSessionsSockets) {
+            if (session.userID === userID) {
+                sessions.push(session)
+            }
+        }
+
+        return sessions
     }
 
     emitToUser(userID: number, event: string, ...data: any[]) {

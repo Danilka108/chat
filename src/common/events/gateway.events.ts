@@ -5,5 +5,6 @@ export class GatewayEvents {
         newMessage: 'user:new_message',
         newDialog: 'user:new_dialog',
         allMessagesRead: 'user:all_messages_read',
+        connect: 'user:connect',
     }
 }

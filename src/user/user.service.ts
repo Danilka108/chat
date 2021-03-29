@@ -43,6 +43,12 @@ export class UserService {
         )
     }
 
+    async getName(userID: number) {
+        const user = await this.userDBService.findById(userID)
+
+        return user.name
+    }
+
     async checkEmail({ email }: CheckEmailDto) {
         const user = await this.userDBService.findByEmailNotException(email)
         if (user) {

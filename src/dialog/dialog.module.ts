@@ -7,9 +7,10 @@ import { DialogService } from './dialog.service'
 import { MessageModule } from 'src/message/message.module'
 import { RedisModule } from 'src/redis/redis.module'
 import { TokenModule } from 'src/token/token.module'
+import { UserModule } from 'src/user/user.module'
 
 @Module({
-    imports: [RedisModule, TokenModule, TypeOrmModule.forFeature([MessageDialog]), forwardRef(() => MessageModule)],
+    imports: [UserModule, RedisModule, TokenModule, TypeOrmModule.forFeature([MessageDialog]), forwardRef(() => MessageModule)],
     controllers: [DialogController],
     providers: [DialogService, MessageDialogDBService],
     exports: [MessageDialogDBService],

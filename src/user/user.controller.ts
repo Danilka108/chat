@@ -1,4 +1,4 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, Delete, UseGuards } from '@nestjs/common'
+import { Body, Controller, Post, HttpCode, HttpStatus, Delete, UseGuards, Get, Param } from '@nestjs/common'
 import { Decoded } from 'src/common/decorator/decoded.decorator'
 import { AuthGuard } from 'src/common/guard/auth.guard'
 import { IDecoded } from 'src/common/interface/decoded.interface'
@@ -12,6 +12,8 @@ import { ChangePasswordDto } from './dto/change-password.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
 import { CheckEmailDto } from './dto/check-email.dto'
 import { IBaseResponse } from 'src/common/interface/base-response.interface'
+import { ParseIDPipe } from 'src/common/pipe/parse-id.pipe'
+import { INameResponse } from './response/name.response'
 
 @Controller('api/user')
 export class UserController {
@@ -25,6 +27,18 @@ export class UserController {
         return {
             statusCode: HttpStatus.OK,
             message: 'User created. Please confirm your email to complete registration',
+        }
+    }
+
+    @Get(':id/name')
+    @HttpCode(HttpStatus.OK)
+    async getUserName(@Param('id', ParseIDPipe) id: number): Promise<INameResponse> {
+        const userName = await this.userService.getName(id)
+
+        return {
+            statusCode: 200,
+            message: 'User name found',
+            data: userName
         }
     }
 

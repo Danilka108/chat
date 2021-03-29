@@ -46,10 +46,12 @@ export class MessageService {
                 await this.messageDBService.markMessagesAsRead(receiver, sender, manager)
 
                 if (isCreatedNewDialog) {
+                    const userConnectionStatus = this.userSocketManager.findUserSessions(sender.id).length ? 'online' : 'offline'
+
                     this.userSocketManager.emitToUser(
                         receiver.id,
                         GatewayEvents.user.newDialog,
-                        parseDialog(sender, newMessage)
+                        parseDialog(sender, newMessage, userConnectionStatus)
                     )
                 }
 

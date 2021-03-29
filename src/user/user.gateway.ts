@@ -25,8 +25,8 @@ export class UserGateway implements OnGatewayDisconnect {
     constructor(private readonly userSocketManager: UserSocketManager) {}
 
     @UseGuards(WsAuthGuard)
-    @SubscribeMessage('user:connect')
-    handleUseConnect(
+    @SubscribeMessage(GatewayEvents.user.connect)
+    handleUserConnect(
         @ConnectedSocket() socket: Socket,
         @WsDecoded() { userID }: IDecoded,
         @WsIp() ip: string,

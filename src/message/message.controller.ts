@@ -7,15 +7,31 @@ import { ParseNumberPipe } from 'src/common/pipe/parse-number.pipe'
 import { EditMessageDto } from './dto/edit-message.dto'
 import { SendMessageDto } from './dto/send-message.dto'
 import { MessageService } from './message.service'
-import { IAllReadResponse } from './response/all-read.response'
+import { IReadResponse } from './response/read.response'
 import { IDeleteMessageResponse } from './response/delete-message.response'
 import { IGetMessagesResponse } from './response/get-messages.response'
 import { ISendMessageResponse } from './response/send-message.response'
 import { IUpdateMessageResponse } from './response/update-message.response'
+import { INotReadedResponse } from './response/not-readed.response'
 
 @Controller('api/message')
 export class MessageController {
     constructor(private readonly messageService: MessageService) {}
+
+    @Get('read')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
+    async messageRead(
+        @Query('message-id', ParseIDPipe) messageID: number,
+        @Decoded() decoded: IDecoded
+    ): Promise<IReadResponse> {
+        await this.messageService.messageRead(messageID, decoded)
+
+        return {
+            statusCode: 200,
+            message: 'Message marked as read',
+        }
+    }
 
     @Get(':id')
     @HttpCode(HttpStatus.OK)
@@ -52,6 +68,22 @@ export class MessageController {
         }
     }
 
+    @Get(':id/not-readed')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
+    async notReadedMessages(
+        @Param('id', ParseIDPipe) id: number,
+        @Decoded() decoded: IDecoded
+    ): Promise<INotReadedResponse> {
+        const notReadedMessagesCount = await this.messageService.notReadedMessages(id, decoded)
+
+        return {
+            statusCode: 200,
+            message: 'All not readed messages found',
+            data: notReadedMessagesCount,
+        }
+    }
+
     @Put()
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
@@ -80,21 +112,6 @@ export class MessageController {
         return {
             statusCode: 200,
             message: 'Message deleted',
-        }
-    }
-
-    @Get(':id/all-read')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard)
-    async allMessagesRead(
-        @Param('id', ParseIDPipe) id: number,
-        @Decoded() decoded: IDecoded
-    ): Promise<IAllReadResponse> {
-        await this.messageService.allMessagesRead(id, decoded)
-
-        return {
-            statusCode: 200,
-            message: 'all messages mark as read',
         }
     }
 }

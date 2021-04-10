@@ -10,7 +10,7 @@ export class DialogService {
     constructor(
         private readonly messageDialogDBService: MessageDialogDBService,
         private readonly messageDBService: MessageDBService,
-        private readonly userSocketManager: UserSocketManager,
+        private readonly userSocketManager: UserSocketManager
     ) {}
 
     async getDialogs({ userID }: IDecoded) {
@@ -30,7 +30,9 @@ export class DialogService {
 
             const newMessagesCount = (await this.messageDBService.findNotReaded(receiver, user)).length
 
-            const userConnectionStatus = this.userSocketManager.findUserSessions(receiver.id).length ? 'online' : 'offline'
+            const userConnectionStatus = this.userSocketManager.findUserSessions(receiver.id).length
+                ? 'online'
+                : 'offline'
 
             dialogs.push(parseDialog(receiver, lastMessage, userConnectionStatus, newMessagesCount))
         }

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import * as jwt from 'jsonwebtoken'
 import { nanoid } from 'nanoid'
 import { IRedisSession } from 'src/redis/interface/redis-session.interface'

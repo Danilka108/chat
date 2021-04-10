@@ -1,3 +1,3 @@
 import { IBaseResponse } from 'src/common/interface/base-response.interface'
 
-export interface IAllReadResponse extends IBaseResponse {}
+export type INotReadedResponse = IBaseResponse<number>

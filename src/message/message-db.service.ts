@@ -120,24 +120,30 @@ export class MessageDBService {
     }
 
     async markMessagesAsRead(sender: User, receiver: User, manager?: EntityManager) {
-        const messages = (await this.findNotReaded(sender, receiver))
-            .filter((message) => {
-                return !message.isReaded
-            })
-            .map((message) => {
-                const msg = message
+        const messages = await this.findNotReaded(sender, receiver)
 
-                msg.isReaded = true
+        for await (const message of messages) {
+            const newMessage: Message = {
+                ...message,
+                isReaded: true,
+            }
 
-                return msg
-            })
-
-        if (manager) {
-            const messageRepo = manager.getRepository(Message)
-            await messageRepo.save(messages)
-        } else {
-            await this.messageRepository.save(messages)
+            if (manager) {
+                const messageRepo = manager.getRepository(Message)
+                await messageRepo.save(newMessage)
+            } else {
+                await this.messageRepository.save(newMessage)
+            }
         }
+    }
+
+    async markMessageAsRead(message: Message) {
+        const editedMessage: Message = {
+            ...message,
+            isReaded: true,
+        }
+
+        await this.messageRepository.save(editedMessage)
     }
 
     async update(content: Content, message: Message, manager: EntityManager) {

@@ -1,3 +1,3 @@
-import { IBaseResponse } from "src/common/interface/base-response.interface";
+import { IBaseResponse } from 'src/common/interface/base-response.interface'
 
-export interface INameResponse extends IBaseResponse<string> {}
+export type INameResponse = IBaseResponse<string>

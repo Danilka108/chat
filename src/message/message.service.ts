@@ -29,6 +29,7 @@ export class MessageService {
 
         if (skip === 0) {
             await this.messageDBService.markMessagesAsRead(receiver, sender)
+            this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.allMessagesRead, sender.id)
         }
 
         return (await this.messageDBService.find(sender, receiver, take, skip)).map(parseMessage)
@@ -46,7 +47,9 @@ export class MessageService {
                 await this.messageDBService.markMessagesAsRead(receiver, sender, manager)
 
                 if (isCreatedNewDialog) {
-                    const userConnectionStatus = this.userSocketManager.findUserSessions(sender.id).length ? 'online' : 'offline'
+                    const userConnectionStatus = this.userSocketManager.findUserSessions(sender.id).length
+                        ? 'online'
+                        : 'offline'
 
                     this.userSocketManager.emitToUser(
                         receiver.id,
@@ -57,6 +60,7 @@ export class MessageService {
 
                 this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.newMessage, parseMessage(newMessage))
                 this.userSocketManager.emitToUser(sender.id, GatewayEvents.user.newMessage, parseMessage(newMessage))
+                this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.allMessagesRead, sender.id)
 
                 return parseMessage(newMessage)
             },
@@ -104,12 +108,29 @@ export class MessageService {
         }
     }
 
-    async allMessagesRead(receiverID: number, { userID }: IDecoded) {
+    async notReadedMessages(receiverID: number, { userID }: IDecoded) {
         const receiver = await this.userDBService.findById(receiverID)
-        const sender = await this.userDBService.findById(userID)
+        const user = await this.userDBService.findById(userID)
 
-        await this.messageDBService.markMessagesAsRead(sender, receiver)
+        const notReadedMessages = await this.messageDBService.findNotReaded(receiver, user)
 
-        this.userSocketManager.emitToUser(receiverID, GatewayEvents.user.allMessagesRead)
+        return notReadedMessages.length
+    }
+
+    async messageRead(messageID: number, { userID }: IDecoded) {
+        const message = await this.messageDBService.findOne(messageID)
+
+        if (message.receiver.id !== userID) {
+            throw new UnauthorizedException(
+                'Insufficient rights to mark the message as read. You must be the receiver of this message'
+            )
+        }
+
+        await this.messageDBService.markMessageAsRead(message)
+
+        this.userSocketManager.emitToUser(message.sender.id, GatewayEvents.user.messageRead, {
+            receiverID: message.receiver.id,
+            messageID,
+        })
     }
 }

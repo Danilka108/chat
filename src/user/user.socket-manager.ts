@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { Socket } from 'socket.io'
-import { IWsSession } from 'src/common/interface/ws-session.interface'
 import { config } from 'src/config'
 import { IRedisSession } from 'src/redis/interface/redis-session.interface'
+import { isSessionsEqual } from 'src/redis/is-sessions-equal'
 
 @Injectable()
 export class UserSocketManager {
@@ -33,7 +33,7 @@ export class UserSocketManager {
     }
 
     findUserSessions(userID: number) {
-        const sessions: IWsSession[] = []
+        const sessions: IRedisSession[] = []
 
         for (const [session] of this.userSessionsSockets) {
             if (session.userID === userID) {
@@ -44,6 +44,17 @@ export class UserSocketManager {
         return sessions
     }
 
+    getUserIDBySocket(socket: Socket) {
+        for (const [userSesion, userSocket] of this.userSessionsSockets) {
+            if (socket === userSocket) {
+                return userSesion.userID
+            }
+        }
+
+        return null
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     emitToUser(userID: number, event: string, ...data: any[]) {
         for (const [session, socket] of this.userSessionsSockets) {
             if (session.userID === userID) {
@@ -63,7 +74,7 @@ export class UserSocketManager {
 
     disconnectUserSessionSocket(session: IRedisSession) {
         for (const [userSession, userSocket] of this.userSessionsSockets) {
-            if (userSession === session) {
+            if (isSessionsEqual(userSession, session)) {
                 this.userSessionsSockets.delete(userSession)
                 userSocket.disconnect(true)
             }

@@ -1,4 +1,4 @@
-import { BadRequestException, CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
 import { isJWT } from 'class-validator'
 import { RedisDeleteUserService } from 'src/redis/services/redis-delete-user.service'
 import { TokenService } from 'src/token/token.service'

@@ -38,7 +38,7 @@ export class UserController {
         return {
             statusCode: 200,
             message: 'User name found',
-            data: userName
+            data: userName,
         }
     }
 

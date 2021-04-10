@@ -15,7 +15,7 @@ import { DialogModule } from 'src/dialog/dialog.module'
         RedisModule,
         TokenModule,
         ContentModule,
-        UserModule,
+        forwardRef(() => UserModule),
         forwardRef(() => DialogModule),
         TypeOrmModule.forFeature([Message]),
     ],

@@ -10,7 +10,13 @@ import { TokenModule } from 'src/token/token.module'
 import { UserModule } from 'src/user/user.module'
 
 @Module({
-    imports: [UserModule, RedisModule, TokenModule, TypeOrmModule.forFeature([MessageDialog]), forwardRef(() => MessageModule)],
+    imports: [
+        RedisModule,
+        TokenModule,
+        TypeOrmModule.forFeature([MessageDialog]),
+        forwardRef(() => MessageModule),
+        forwardRef(() => UserModule),
+    ],
     controllers: [DialogController],
     providers: [DialogService, MessageDialogDBService],
     exports: [MessageDialogDBService],

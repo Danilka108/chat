@@ -13,6 +13,7 @@ import { RedisSessionService } from 'src/redis/services/redis-session.service'
 import { RedisDeleteUserService } from 'src/redis/services/redis-delete-user.service'
 import { CheckEmailDto } from './dto/check-email.dto'
 import { transaction } from 'src/common/transaction'
+import { SearchDto } from './dto/search.dto'
 
 @Injectable()
 export class UserService {
@@ -118,5 +119,17 @@ export class UserService {
         await this.userDBService.delete(userID, password)
 
         await this.redisDeleteUserService.set(userID)
+    }
+
+    async search({ name }: SearchDto, { userID }: IDecoded) {
+        const searchResult = await this.userDBService.searchByName(userID, name)
+
+        return searchResult.map((user) => user.name)
+    }
+
+    async isExistUser(userID: number) {
+        const user = await this.userDBService.findByIdNotException(userID)
+
+        return !!user
     }
 }

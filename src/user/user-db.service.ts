@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { EntityManager, Repository } from 'typeorm'
+import { EntityManager, Like, Not, Repository } from 'typeorm'
 import { User } from './user.entity'
 import * as bcrypt from 'bcrypt'
 
@@ -26,6 +26,15 @@ export class UserDBService {
         newUser.password = password
 
         return await userRepo.save(newUser)
+    }
+
+    async searchByName(userID: number, searchString: string) {
+        return await this.userRepository.find({
+            where: {
+                id: Not(userID),
+                name: Like(`%${searchString}%`),
+            },
+        })
     }
 
     async findById(id: number, errorMessage = 'User not found') {

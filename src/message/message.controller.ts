@@ -18,6 +18,37 @@ import { INotReadedResponse } from './response/not-readed.response'
 export class MessageController {
     constructor(private readonly messageService: MessageService) {}
 
+    @Put()
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
+    async updateMessage(
+        @Query('message-id', ParseIDPipe) messageID: number,
+        @Body() editMessageDto: EditMessageDto,
+        @Decoded() decoded: IDecoded
+    ): Promise<IUpdateMessageResponse> {
+        await this.messageService.updateMessage(editMessageDto, messageID, decoded)
+
+        return {
+            statusCode: 200,
+            message: 'Message edited',
+        }
+    }
+
+    @Delete()
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
+    async deleteMessage(
+        @Query('message-id', ParseIDPipe) messageID: number,
+        @Decoded() decoded: IDecoded
+    ): Promise<IDeleteMessageResponse> {
+        await this.messageService.deleteMessage(messageID, decoded)
+
+        return {
+            statusCode: 200,
+            message: 'Message deleted',
+        }
+    }
+
     @Get('read')
     @HttpCode(HttpStatus.OK)
     @UseGuards(AuthGuard)
@@ -81,37 +112,6 @@ export class MessageController {
             statusCode: 200,
             message: 'All not readed messages found',
             data: notReadedMessagesCount,
-        }
-    }
-
-    @Put()
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard)
-    async updateMessage(
-        @Query('message-id', ParseIDPipe) messageID: number,
-        @Body() editMessageDto: EditMessageDto,
-        @Decoded() decoded: IDecoded
-    ): Promise<IUpdateMessageResponse> {
-        await this.messageService.updateMessage(editMessageDto, messageID, decoded)
-
-        return {
-            statusCode: 200,
-            message: 'Message edited',
-        }
-    }
-
-    @Delete()
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard)
-    async deleteMessage(
-        @Query('message-id', ParseIDPipe) messageID: number,
-        @Decoded() decoded: IDecoded
-    ): Promise<IDeleteMessageResponse> {
-        await this.messageService.deleteMessage(messageID, decoded)
-
-        return {
-            statusCode: 200,
-            message: 'Message deleted',
         }
     }
 }

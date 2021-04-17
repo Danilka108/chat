@@ -29,7 +29,9 @@ export class MessageService {
 
         if (skip === 0) {
             await this.messageDBService.markMessagesAsRead(receiver, sender)
-            this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.allMessagesRead, sender.id)
+            if (sender.id !== receiver.id) {
+                this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.allMessagesRead, sender.id)
+            }
         }
 
         return (await this.messageDBService.find(sender, receiver, take, skip)).map(parseMessage)
@@ -43,11 +45,21 @@ export class MessageService {
             async (manager) => {
                 const isCreatedNewDialog = await this.messageDialogDBService.create(sender, receiver, manager)
                 const newContent = await this.contentDBService.createContent(message, manager)
-                const newMessage = await this.messageDBService.create(newContent, sender, receiver, manager)
+                const newMessage = await this.messageDBService.create(
+                    sender.id === receiver.id,
+                    newContent,
+                    sender,
+                    receiver,
+                    manager
+                )
                 await this.messageDBService.markMessagesAsRead(receiver, sender, manager)
 
                 if (isCreatedNewDialog) {
                     const userConnectionStatus = this.userSocketManager.findUserSessions(sender.id).length
+                        ? 'online'
+                        : 'offline'
+
+                    const receiverConnectionStatus = this.userSocketManager.findUserSessions(receiver.id).length
                         ? 'online'
                         : 'offline'
 
@@ -56,10 +68,31 @@ export class MessageService {
                         GatewayEvents.user.newDialog,
                         parseDialog(sender, newMessage, userConnectionStatus)
                     )
+                    this.userSocketManager.emitToUser(
+                        sender.id,
+                        GatewayEvents.user.newDialog,
+                        parseDialog(receiver, newMessage, receiverConnectionStatus)
+                    )
                 }
 
-                this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.newMessage, parseMessage(newMessage))
-                this.userSocketManager.emitToUser(sender.id, GatewayEvents.user.newMessage, parseMessage(newMessage))
+                if (sender.id !== receiver.id) {
+                    this.userSocketManager.emitToUser(
+                        receiver.id,
+                        GatewayEvents.user.newMessage,
+                        parseMessage(newMessage)
+                    )
+                    this.userSocketManager.emitToUser(
+                        sender.id,
+                        GatewayEvents.user.newMessage,
+                        parseMessage(newMessage)
+                    )
+                } else {
+                    this.userSocketManager.emitToUser(
+                        sender.id,
+                        GatewayEvents.user.newMessage,
+                        parseMessage(newMessage)
+                    )
+                }
                 this.userSocketManager.emitToUser(receiver.id, GatewayEvents.user.allMessagesRead, sender.id)
 
                 return parseMessage(newMessage)

@@ -12,12 +12,13 @@ export class MessageDBService {
         private readonly messageRepository: Repository<Message>
     ) {}
 
-    async create(content: Content, sender: User, receiver: User, manager: EntityManager) {
+    async create(isReaded: boolean, content: Content, sender: User, receiver: User, manager: EntityManager) {
         const newMessage = new Message()
 
         newMessage.content = content
         newMessage.sender = sender
         newMessage.receiver = receiver
+        newMessage.isReaded = isReaded
 
         const messageRepo = manager.getRepository(Message)
 

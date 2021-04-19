@@ -14,6 +14,7 @@ import { RedisDeleteUserService } from 'src/redis/services/redis-delete-user.ser
 import { CheckEmailDto } from './dto/check-email.dto'
 import { transaction } from 'src/common/transaction'
 import { SearchDto } from './dto/search.dto'
+import { ISearchUser } from './interfaces/search-user.interface'
 
 @Injectable()
 export class UserService {
@@ -121,10 +122,13 @@ export class UserService {
         await this.redisDeleteUserService.set(userID)
     }
 
-    async search({ name }: SearchDto, { userID }: IDecoded) {
-        const searchResult = await this.userDBService.searchByName(userID, name)
+    async search({ name }: SearchDto, { userID }: IDecoded): Promise<ISearchUser[]> {
+        const searchResult = name.length === 0 ? [] : await this.userDBService.searchByName(userID, name)
 
-        return searchResult.map((user) => user.name)
+        return searchResult.map((user) => ({
+            name: user.name,
+            id: user.id,
+        }))
     }
 
     async isExistUser(userID: number) {

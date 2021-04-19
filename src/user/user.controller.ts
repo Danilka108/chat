@@ -34,6 +34,19 @@ export class UserController {
         }
     }
 
+    @Post('search')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
+    async search(@Body() searchDto: SearchDto, @Decoded() decoded: IDecoded): Promise<SearchResponse> {
+        const searchResult = await this.userService.search(searchDto, decoded)
+
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'Users found',
+            data: searchResult,
+        }
+    }
+
     @Post()
     @HttpCode(HttpStatus.OK)
     async create(@Body() createUserDto: CreateUserDto): Promise<IBaseResponse> {
@@ -66,18 +79,6 @@ export class UserController {
             statusCode: 200,
             message: 'User name found',
             data: userName,
-        }
-    }
-
-    @Post('search')
-    @HttpCode(HttpStatus.OK)
-    async search(@Body() searchDto: SearchDto, @Decoded() decoded: IDecoded): Promise<SearchResponse> {
-        const searchResult = await this.userService.search(searchDto, decoded)
-
-        return {
-            statusCode: HttpStatus.OK,
-            message: 'Users found',
-            data: searchResult,
         }
     }
 

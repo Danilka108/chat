@@ -11,6 +11,8 @@ import { RedisModule } from './redis/redis.module'
 import { MessageModule } from './message/message.module'
 import { ContentModule } from './content/content.module'
 import { DialogModule } from './dialog/dialog.module'
+import { ServeStaticModule } from '@nestjs/serve-static'
+import { join } from 'path'
 
 @Module({
     imports: [
@@ -25,6 +27,9 @@ import { DialogModule } from './dialog/dialog.module'
         MessageModule,
         ContentModule,
         DialogModule,
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '..', '..', 'client', 'dist', 'chat'),
+        }),
     ],
 })
 export class AppModule {}

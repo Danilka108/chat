@@ -30,6 +30,6 @@ lerna-debug.log*
 .vscode/*
 
 # config
-src/config/index.ts
 .env
+prod.env
 ormconfig.json

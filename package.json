@@ -22,6 +22,9 @@
     "typeorm:migration:generate": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:create -n",
     "typeorm:migration:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run"
   },
+  "engines": {
+    "node": "14.16.1"
+  },
   "dependencies": {
     "@nestjs/common": "^7.6.13",
     "@nestjs/core": "^7.5.1",

@@ -1,4 +1,4 @@
 export interface IAppConfig {
-    port: number
+    port: string | number
     hostname: string
 }

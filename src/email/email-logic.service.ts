@@ -6,6 +6,8 @@ import { RedisConfirmEmailService } from 'src/redis/services/redis-confirm-email
 import { RedisResetPasswordService } from 'src/redis/services/redis-reset-password.service'
 import { TokenService } from 'src/token/token.service'
 import { NODEMAILER_TRANSPORTER } from '../nodemailer/nodemailer.constants'
+import { confirmEmailTemplate } from './templates/confirm-email.template'
+import { resetPasswordTemplate } from './templates/reset-password.template'
 
 @Injectable()
 export class EmailLogicService {
@@ -29,14 +31,11 @@ export class EmailLogicService {
             await this.redisConfirmEmailService.set(userID, confirmToken)
 
             await this.nodemailerTransporter.sendMail({
-                from: `${from}`,
+                from: `Venerdichat <${from}>`,
                 to: address,
-                subject: 'Confirm email',
-                text: `${link}`,
-                html: `
-                    <h1>Confirm email</h1>
-                    <a href="${link}">Verify</a>
-                `,
+                subject: 'Confirm Email',
+                text: `Confirm email link: ${link}`,
+                html: confirmEmailTemplate(link),
             })
         } catch (error) {
             throw new InternalServerErrorException(
@@ -63,15 +62,11 @@ export class EmailLogicService {
             await this.redisResetPasswordService.set(userID, resetToken)
 
             await this.nodemailerTransporter.sendMail({
-                from: `${from}`,
+                from: `Venerdichat <${from}>`,
                 to: address,
                 subject: 'Reset password',
-                text: `Link is valid for ${expiresInHours} hours. ${link}`,
-                html: `
-                    <h1>Reset password</h1>
-                    <p>Link is valid for ${expiresInHours} hours.</p>
-                    <a href="${link}">Reset</a>
-                `,
+                text: `Reset password link: ${link}. Link is valid ${expiresInHours} hours`,
+                html: resetPasswordTemplate(link, expiresInHours),
             })
         } catch (error) {}
     }
@@ -87,14 +82,11 @@ export class EmailLogicService {
             await this.redisChangeEmailService.set(userID, { token: changeEmailToken, email: newAddress })
 
             await this.nodemailerTransporter.sendMail({
-                from: `${from}`,
+                from: `Venerdichat <${from}>`,
                 to: newAddress,
-                subject: 'Confirm new email',
-                text: `${link}`,
-                html: `
-                    <h1>Confirm new email</h1>
-                    <a href="${link}">Confirm</a>
-                `,
+                subject: 'Confirm email',
+                text: `Confirm email link: ${link}`,
+                html: confirmEmailTemplate(link, true),
             })
         } catch (error) {
             throw new InternalServerErrorException('Email sending error')

@@ -1,18 +1,11 @@
 import { IConfig } from './interface/config.interface'
 import * as dotenv from 'dotenv'
-import { join } from 'path'
 
-if (process.env.NODE_ENV === 'production') {
-    dotenv.config({
-        path: join(__dirname, '../..', 'prod.env'),
-    })
-} else {
-    dotenv.config()
-}
+dotenv.config()
 
 export const config: IConfig = {
     app: {
-        port: Number(process.env.APP_PORT),
+        port: process.env.APP_PORT || 8080,
         hostname: process.env.APP_HOSTNAME as string,
     },
     db: {
@@ -26,6 +19,7 @@ export const config: IConfig = {
         entities: ['dist/**/*.entity.{ts,js}'],
     },
     redis: {
+        host: process.env.REDIS_HOST as string,
         port: Number(process.env.REDIS_PORT),
     },
     jwt: {
@@ -37,9 +31,9 @@ export const config: IConfig = {
         maxNum: 5,
     },
     nodemailer: {
-        port: Number(process.env.NODEMAILER_HOST),
+        port: 465,
         host: process.env.NODEMAILER_HOST as string,
-        // secure: true,
+        secure: true,
         auth: {
             user: process.env.NODEMAILER_USER as string,
             pass: process.env.NODEMAILER_PASSWORD as string,

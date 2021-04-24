@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { EntityManager, Like, Not, Repository } from 'typeorm'
+import { EntityManager, ILike, Not, Repository } from 'typeorm'
 import { User } from './user.entity'
 import * as bcrypt from 'bcrypt'
 
@@ -32,7 +32,7 @@ export class UserDBService {
         return await this.userRepository.find({
             where: {
                 id: Not(userID),
-                name: Like(`%${searchString}%`),
+                name: ILike(`%${searchString.trim()}%`),
             },
         })
     }
